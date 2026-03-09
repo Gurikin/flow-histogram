@@ -1,0 +1,32 @@
+@startuml
+
+actor Client
+entity Configuration
+participant Histogramator
+participant ChunkGenerator
+database Store
+queue Queue
+queue SourceFlow
+
+group setup histogram parameters
+    Client -> Configuration: setup histogram's borders
+    Configuration --> Histogramator: setup histogram parameters \n for chunks generation
+    Configuration --> ChunkGenerator: setup histogram parameters for chunks generation
+end
+
+group chunk aggregation
+    ChunkGenerator <-- SourceFlow: collect data
+    ChunkGenerator --> ChunkGenerator: aggregate chunks
+    ChunkGenerator <-> Store: store chunk and get id
+    ChunkGenerator --> Queue: send ChunkId
+end
+
+group histogram accumulation
+    Histogramator <-- Queue: receive ChunkId
+    Histogramator -> Store: request chunk by id
+    Histogramator <- Store: response chunk
+    Histogramator --> Histogramator: accumulate chunks \n to histogram
+    Histogramator -> Client: show histogram
+end
+
+@enduml

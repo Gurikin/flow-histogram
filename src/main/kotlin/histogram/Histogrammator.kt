@@ -1,4 +1,4 @@
-package org.gurikin.api
+package org.gurikin.histogram
 
 /**
  * Facade for start build histogram from flow data.

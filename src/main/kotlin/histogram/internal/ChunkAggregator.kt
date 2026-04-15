@@ -1,4 +1,7 @@
-package org.gurikin.api.internal
+package org.gurikin.histogram.internal
+
+import java.util.*
+import kotlinx.coroutines.flow.Flow
 
 /**
  * API для агрегации элементов, поступающих из SourceFlowGenerator в чанки (гистограммы с константными границами)
@@ -13,5 +16,10 @@ package org.gurikin.api.internal
  *  - Подгружаем параметры чанка (гистограммы)
  *  - Добавляем "точку" к нужному бину (определяется математически)
  */
-internal interface ChunkAggregator {
+internal interface ChunkAggregator<T> {
+    fun collectData(flow: Flow<T>)
+    fun storeChunk(frame: T): ChunkId
+    fun sendChunkId(chunkId: ChunkId)
 }
+
+data class ChunkId(val id: UUID)

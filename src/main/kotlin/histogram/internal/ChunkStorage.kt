@@ -1,4 +1,4 @@
-package org.gurikin.api.internal
+package org.gurikin.histogram.internal
 
 /**
  * API для управления хранилищем параметров и состояния чанков

@@ -1,4 +1,4 @@
-package org.gurikin.api.internal
+package org.gurikin.histogram.internal
 
 /**
  * API для работы с очередью сообщений о необходимости аккумуляции чанка в общей гистограмме

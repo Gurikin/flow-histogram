@@ -6,6 +6,9 @@ import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramBuilder
+import org.gurikin.histogram.internal.addFrame
+import org.gurikin.histogram.internal.frameInBorder
+import org.gurikin.histogram.internal.setWeight
 
 class IntHistogramBuilder : HistogramBuilder<Int> {
     override fun initHistogram(
@@ -13,11 +16,11 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
         binsCount: Int
     ): Histogram<Int> {
         var remOfDiv = reminderOfDivision(border, binsCount)
-        val interval = abs(border.to - border.from)
+        val interval = abs(border.to - remOfDiv - border.from)
         val step = interval / binsCount
         val bins: MutableList<Bin<Int>> = mutableListOf()
         var currBin = Bin(Border(border.from, border.from + step))
-        for (i in (0..<binsCount - 1)) {
+        for (i in (0..<binsCount)) {
             val binFrom = currBin.border.from
             val correctionToBin = remOfDiv.addCorrectionToBin()
             val binTo = currBin.border.to + correctionToBin
@@ -27,7 +30,7 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
             bins.add(bin)
             currBin = Bin(Border(bin.border.to, bin.border.to + step))
         }
-        return Histogram(bins)
+        return Histogram(bins = bins, totalFrameSum = 0)
     }
 
     private fun reminderOfDivision(border: Border<Int>, binsCount: Int): Int =
@@ -40,8 +43,15 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
             1
         }
 
-    override fun add(value: Frame<Int>) {
-        TODO("Not yet implemented")
+    override fun add(value: Frame<Int>, histogram: Histogram<Int>) {
+        for (bin in histogram.bins) {
+            if (bin.frameInBorder(value)) {
+                histogram.totalFrameSum += 1
+                bin.addFrame(value)
+            }
+        }
+        histogram.bins.forEach { bin ->
+            bin.setWeight(bin.frameSum.toDouble() / histogram.totalFrameSum)
+        }
     }
-
 }

@@ -11,13 +11,13 @@ import kotlinx.serialization.Serializable
  *    - число чанков
  *    - размер каждого чанка
  */
-interface HistogramBuilder<S: Comparable<S>> {
+interface HistogramBuilder<S : Comparable<S>> {
     fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
-    fun add(value: Frame<S>)
+    fun add(value: Frame<S>, histogram: Histogram<S>)
 }
 
 @Serializable
-data class HistogramConfiguration<S: Comparable<S>>(
+data class HistogramConfiguration<S : Comparable<S>>(
     val histogramBorder: Border<S>,
     val binsCount: Int,
 )
@@ -40,17 +40,27 @@ data class HistogramConfiguration<S: Comparable<S>>(
  *
  */
 @Serializable
-public open class Histogram<S: Comparable<S>>(
-    private val bins: List<Bin<S>>,
+public open class Histogram<S : Comparable<S>>(
+    val bins: List<Bin<S>>,
+    var totalFrameSum: Int,
 )
 
 @Serializable
-class Bin<S: Comparable<S>>(val border: Border<S>) {
-    private val sum: Int = 0
-    private val weight: Double = 0.0
+class Bin<S : Comparable<S>>(val border: Border<S>) {
+    internal var frameSum: Int = 0
+    internal var weight: Double = 0.0
+}
 
-    fun frameInBorder(frame: Frame<S>): Boolean = throw UnsupportedOperationException("Need to implement for particular type `S`")
+fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
+    (frame.value < this.border.to && frame.value >= this.border.from)
+
+fun <S : Comparable<S>> Bin<S>.addFrame(frame: Frame<S>) {
+    this.frameSum += 1
+}
+
+fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
+    this.weight = weight
 }
 
 @Serializable
-data class Border<S: Comparable<S>>(val from: S, val to: S)
+data class Border<S : Comparable<S>>(val from: S, val to: S)

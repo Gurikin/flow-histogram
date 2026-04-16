@@ -6,5 +6,5 @@ package org.gurikin.histogram.internal
  */
 interface ChunkQueue {
     fun add(chunk: ChunkId)
-    fun poll(chunkId: ChunkId): Chunk<*>
+    fun poll(): ChunkId
 }

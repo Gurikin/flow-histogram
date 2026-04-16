@@ -6,4 +6,5 @@ package org.gurikin.histogram.internal
  */
 interface ChunkStorage {
     fun storeChunk(chunk: Chunk<*>): ChunkId
+    fun getChunk(chunkId: ChunkId): Chunk<*>
 }

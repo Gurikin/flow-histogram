@@ -2,7 +2,9 @@ package org.gurikin.histogram.internal
 
 /**
  * API для работы с очередью сообщений о необходимости аккумуляции чанка в общей гистограмме
- * Предполагаются различные реализации в виде персистентных хранилищ, очередей в памяти, key-value хранилищ и пр.
+ * Предпологаются различные реализации в виде персистентных хранилищ, очередей в памяти, key-value хранилищ и пр.
  */
-internal interface ChunkQueue {
+interface ChunkQueue {
+    fun add(chunk: ChunkId)
+    fun poll(chunkId: ChunkId): Chunk<*>
 }

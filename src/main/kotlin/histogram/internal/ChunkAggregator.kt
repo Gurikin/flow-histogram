@@ -1,7 +1,12 @@
 package org.gurikin.histogram.internal
 
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * API для агрегации элементов, поступающих из SourceFlowGenerator в чанки (гистограммы с константными границами)
@@ -16,10 +21,48 @@ import kotlinx.coroutines.flow.Flow
  *  - Подгружаем параметры чанка (гистограммы)
  *  - Добавляем "точку" к нужному бину (определяется математически)
  */
-internal interface ChunkAggregator<T> {
-    fun collectData(flow: Flow<T>)
-    fun storeChunk(frame: T): ChunkId
+internal interface ChunkAggregator<S : Comparable<S>> {
+    suspend fun collectData(framesFlow: Flow<Frame<S>>)
+    fun storeChunk(chunk: Chunk<S>): ChunkId
     fun sendChunkId(chunkId: ChunkId)
 }
 
+data class Chunk<S : Comparable<S>>(
+    val histogram: Histogram<S>,
+    val chunkId: ChunkId = ChunkId(UUID.randomUUID())
+)
+
 data class ChunkId(val id: UUID)
+
+
+class DefaultChunkAggregator<S : Comparable<S>>(
+    val chunks: SortedSet<Chunk<S>>,
+    val chunkStorage: ChunkStorage,
+    val chunkQueue: ChunkQueue,
+    val scope: CoroutineScope
+) : ChunkAggregator<S> {
+    override suspend fun collectData(framesFlow: Flow<Frame<S>>) {
+        scope.launch {
+            framesFlow.collect { frame ->
+                for (chunk in chunks) {
+                    if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
+                        chunk!!.histogram.add(frame)
+                        break
+                    }
+                }
+            }
+        }
+        scope.launch {
+            while (scope.isActive) {
+                delay(5000.milliseconds)
+                for (chunk in chunks) {
+                    this@DefaultChunkAggregator.sendChunkId(chunkStorage.storeChunk(chunk))
+                }
+            }
+        }
+    }
+
+    override fun storeChunk(chunk: Chunk<S>): ChunkId = chunkStorage.storeChunk(chunk)
+
+    override fun sendChunkId(chunkId: ChunkId) = chunkQueue.add(chunkId)
+}

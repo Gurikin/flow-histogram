@@ -1,6 +1,7 @@
 package org.gurikin.histogram.internal
 
 import kotlinx.serialization.Serializable
+import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -15,6 +16,13 @@ interface HistogramBuilder<S : Comparable<S>> {
     fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
     fun add(value: Frame<S>, histogram: Histogram<S>)
 }
+
+//fun HistogramBuilder<*>.createBuilder(): HistogramBuilder<*> {
+//    when {
+//        this.value is Int -> return IntHistogramBuilder()
+//        else -> throw UnsupportedOperationException("HistogramBuilder for type ${this.value::class.qualifiedName} not implemented yet")
+//    }
+//}
 
 @Serializable
 data class HistogramConfiguration<S : Comparable<S>>(
@@ -44,6 +52,19 @@ public open class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     var totalFrameSum: Int,
 )
+
+fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
+    // TODO replace with binary search
+    for (bin in this.bins) {
+        if (bin.frameInBorder(value)) {
+            this.totalFrameSum += 1
+            bin.addFrame(value)
+        }
+    }
+    this.bins.forEach { bin ->
+        bin.setWeight(bin.frameSum.toDouble() / this.totalFrameSum)
+    }
+}
 
 @Serializable
 class Bin<S : Comparable<S>>(val border: Border<S>) {

@@ -44,6 +44,7 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
         }
 
     override fun add(value: Frame<Int>, histogram: Histogram<Int>) {
+        // TODO replace with binary search
         for (bin in histogram.bins) {
             if (bin.frameInBorder(value)) {
                 histogram.totalFrameSum += 1

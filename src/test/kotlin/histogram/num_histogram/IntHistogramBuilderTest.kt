@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.add
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 
 class IntHistogramBuilderTest {
@@ -36,9 +37,9 @@ class IntHistogramBuilderTest {
         val histogram = histogramBuilder.initHistogram(border, binsCount)
         for (i in 0..<100) {
             when (i) {
-                in (0..49) -> histogramBuilder.add(Frame(49), histogram)
-                in (50..89) -> histogramBuilder.add(Frame(89), histogram)
-                else -> histogramBuilder.add(Frame(9), histogram)
+                in (0..49) -> histogram.add(Frame(49))
+                in (50..89) -> histogram.add(Frame(89))
+                else -> histogram.add(Frame(9))
             }
         }
         assertEquals(100, histogram.totalFrameSum)
@@ -58,9 +59,9 @@ class IntHistogramBuilderTest {
         val histogram = histogramBuilder.initHistogram(border, binsCount)
         for (i in 0..<100) {
             when (i) {
-                in (0..49) -> histogramBuilder.add(Frame(10), histogram)
-                in (50..89) -> histogramBuilder.add(Frame(21), histogram)
-                else -> histogramBuilder.add(Frame(22), histogram)
+                in (0..49) -> histogram.add(Frame(10))
+                in (50..89) -> histogram.add(Frame(21))
+                else -> histogram.add(Frame(22))
             }
         }
         assertEquals(100, histogram.totalFrameSum)

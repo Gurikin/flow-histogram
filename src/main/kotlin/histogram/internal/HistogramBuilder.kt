@@ -1,7 +1,6 @@
 package org.gurikin.histogram.internal
 
 import kotlinx.serialization.Serializable
-import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -14,7 +13,6 @@ import org.gurikin.histogram.num_histogram.IntHistogramBuilder
  */
 interface HistogramBuilder<S : Comparable<S>> {
     fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
-    fun add(value: Frame<S>, histogram: Histogram<S>)
 }
 
 //fun HistogramBuilder<*>.createBuilder(): HistogramBuilder<*> {

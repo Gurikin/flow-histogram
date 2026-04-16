@@ -3,13 +3,16 @@ package org.gurikin.histogram.num_histogram
 import kotlin.math.abs
 import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramBuilder
-import org.gurikin.histogram.internal.addFrame
-import org.gurikin.histogram.internal.frameInBorder
-import org.gurikin.histogram.internal.setWeight
 
+/**
+ * Implementaion of [HistogramBuilder] for [Int] type
+ * As is type is possible very different its need
+ * to create Histogram instance for each type particullary.
+ *
+ * Only 1D histogram are possible now
+ */
 class IntHistogramBuilder : HistogramBuilder<Int> {
     override fun initHistogram(
         border: Border<Int>,
@@ -42,17 +45,4 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
         } else {
             1
         }
-
-    override fun add(value: Frame<Int>, histogram: Histogram<Int>) {
-        // TODO replace with binary search
-        for (bin in histogram.bins) {
-            if (bin.frameInBorder(value)) {
-                histogram.totalFrameSum += 1
-                bin.addFrame(value)
-            }
-        }
-        histogram.bins.forEach { bin ->
-            bin.setWeight(bin.frameSum.toDouble() / histogram.totalFrameSum)
-        }
-    }
 }

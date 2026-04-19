@@ -23,18 +23,22 @@ import kotlinx.coroutines.launch
  */
 internal interface ChunkAggregator<S : Comparable<S>> {
     suspend fun collectData(framesFlow: Flow<Frame<S>>)
-    fun storeChunk(chunk: Chunk<S>): ChunkId
-    fun sendChunkId(chunkId: ChunkId)
+    suspend fun storeChunk(chunk: Chunk<S>): ChunkId
+    suspend fun sendChunkId(chunkId: ChunkId)
 }
 
 data class Chunk<S : Comparable<S>>(
     val histogram: Histogram<S>,
-    val chunkId: ChunkId = ChunkId(UUID.randomUUID())
+    val chunkId: ChunkId = ChunkId()
 )
 
-data class ChunkId(val id: UUID)
+data class ChunkId(val id: UUID = UUID.randomUUID())
 
 
+/**
+ * Default implementatio of [ChunkAggregator].
+ * Try to use it whith all types you need.
+ */
 class DefaultChunkAggregator<S : Comparable<S>>(
     val chunks: SortedSet<Chunk<S>>,
     val chunkStorage: ChunkStorage,
@@ -62,7 +66,7 @@ class DefaultChunkAggregator<S : Comparable<S>>(
         }
     }
 
-    override fun storeChunk(chunk: Chunk<S>): ChunkId = chunkStorage.storeChunk(chunk)
+    override suspend fun storeChunk(chunk: Chunk<S>): ChunkId = chunkStorage.storeChunk(chunk)
 
-    override fun sendChunkId(chunkId: ChunkId) = chunkQueue.add(chunkId)
+    override suspend fun sendChunkId(chunkId: ChunkId) = chunkQueue.add(chunkId)
 }

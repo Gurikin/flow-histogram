@@ -4,18 +4,18 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
-import org.gurikin.histogram.internal.DefaultChunkStorage
+import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.Before
+import org.junit.jupiter.api.assertDoesNotThrow
 
-class DefaultChunkStorageTest {
+class DefaultChunkQueueTest {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val storage = DefaultChunkStorage(scope)
+    private val queue = DefaultChunkQueue(scope)
     private lateinit var chunk: Chunk<Int>
 
     @Before
@@ -26,22 +26,11 @@ class DefaultChunkStorageTest {
     }
 
     @Test
-    fun storeChunk() = runBlocking {
-        val actualChunkId = storage.storeChunk(chunk)
-        assertEquals(chunk.chunkId, actualChunkId)
-    }
-
-    @Test
-    fun getChunk() {
-        runBlocking {
-            val actualChunkId = scope.async {
-                storage.storeChunk(chunk)
-            }.await()
+    fun addAndPoll() = runBlocking {
+        assertDoesNotThrow("Should not throw an exception") {
+            queue.add(chunk.chunkId)
+            val actualChunkId = queue.poll()
             assertEquals(chunk.chunkId, actualChunkId)
-            val actualChunk = scope.async {
-                storage.getChunk(chunk.chunkId)
-            }.await()
-            assertEquals(chunk, actualChunk)
         }
     }
 }

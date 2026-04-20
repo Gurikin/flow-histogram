@@ -2,7 +2,6 @@ package org.gurikin.histogram.internal
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
@@ -40,18 +39,16 @@ class DefaultChunkStorage(val scope: CoroutineScope) : ChunkStorage {
     }
 
     override suspend fun storeChunk(chunk: Chunk<*>): ChunkId {
-        chunkChannel.trySend(chunk).getOrThrow()
+        chunkChannel.send(chunk)
         return chunk.chunkId
     }
 
-    override suspend fun getChunk(chunkId: ChunkId): Chunk<*> = scope.async {
-        withTimeout(100.milliseconds) {
-            var result: Chunk<*>? = null
-            while (result == null) {
-                result = chunkMap[chunkId]
-                delay(2.milliseconds)
-            }
-            result
+    override suspend fun getChunk(chunkId: ChunkId): Chunk<*> = withTimeout(100.milliseconds) {
+        var result: Chunk<*>? = null
+        while (result == null) {
+            result = chunkMap[chunkId]
+            if (result == null) delay(2.milliseconds)
         }
-    }.await()
+        result
+    }
 }

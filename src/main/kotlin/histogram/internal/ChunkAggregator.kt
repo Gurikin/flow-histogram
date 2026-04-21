@@ -1,11 +1,8 @@
 package org.gurikin.histogram.internal
 
 import java.util.*
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -30,7 +27,10 @@ internal interface ChunkAggregator<S : Comparable<S>> {
 data class Chunk<S : Comparable<S>>(
     val histogram: Histogram<S>,
     val chunkId: ChunkId = ChunkId()
-)
+) : Comparable<Chunk<S>> {
+    override fun compareTo(other: Chunk<S>): Int =
+        this.histogram.bins[0].border.from.compareTo(other.histogram.bins[0].border.from)
+}
 
 data class ChunkId(val id: UUID = UUID.randomUUID())
 
@@ -54,11 +54,6 @@ class DefaultChunkAggregator<S : Comparable<S>>(
                         break
                     }
                 }
-            }
-        }
-        scope.launch {
-            while (scope.isActive) {
-                delay(5000.milliseconds)
                 for (chunk in chunks) {
                     this@DefaultChunkAggregator.sendChunkId(chunkStorage.storeChunk(chunk))
                 }

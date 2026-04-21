@@ -14,7 +14,7 @@ class IntFlowGenerator : SourceFlowGenerator<Int> {
     override fun flowData(): Flow<Frame<Int>> = flow {
         while (currentCoroutineContext().isActive) {
             emit(Frame(Random.nextInt(0..1000)))
-            delay(1000)
+            delay(1)
         }
     }
 }

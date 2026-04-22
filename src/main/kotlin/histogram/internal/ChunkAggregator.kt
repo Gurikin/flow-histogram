@@ -41,7 +41,7 @@ data class ChunkId(val id: UUID = UUID.randomUUID())
  */
 class DefaultChunkAggregator<S : Comparable<S>>(
     val chunks: SortedSet<Chunk<S>>,
-    val chunkStorage: ChunkStorage,
+    val chunkStorage: ChunkStorage<S>,
     val chunkQueue: ChunkQueue,
     val scope: CoroutineScope
 ) : ChunkAggregator<S> {

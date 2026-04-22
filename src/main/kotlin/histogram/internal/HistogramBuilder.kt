@@ -81,5 +81,8 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
     this.weight = weight
 }
 
+fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
+    (chunk.histogram.bins.first().border.from > this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
+
 @Serializable
 data class Border<S : Comparable<S>>(val from: S, val to: S)

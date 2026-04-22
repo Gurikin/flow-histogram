@@ -15,7 +15,7 @@ import org.junit.Before
 
 class DefaultChunkStorageTest {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val storage = DefaultChunkStorage(scope)
+    private val storage = DefaultChunkStorage<Int>(scope)
     private lateinit var chunk: Chunk<Int>
 
     @Before

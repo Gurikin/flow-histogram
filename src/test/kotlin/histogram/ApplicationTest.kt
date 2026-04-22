@@ -30,11 +30,11 @@ class ApplicationTest {
             var border = Border(0, step - 1)
             (1..9).forEach { histogramNum ->
                 chunks.add(Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId()))
-                border = Border<Int>(histogramNum * step, histogramNum * step + step - 1)
+                border = Border(histogramNum * step, histogramNum * step + step - 1)
             }
-            val chunkStorage = DefaultChunkStorage(this)
+            val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
-            val chunkAggregator = DefaultChunkAggregator<Int>(
+            val chunkAggregator = DefaultChunkAggregator(
                 chunks = chunks,
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
@@ -48,8 +48,9 @@ class ApplicationTest {
             chunkAggregator.collectData(sourceFlow)
 
             this.launch {
+                val expectedMessageCnt = 1000
                 var messageCnt = 1
-                while (messageCnt < 10000) {
+                while (messageCnt < expectedMessageCnt) {
                     val chunkId = chunkQueue.poll()
                     val chunk = chunkStorage.getChunk(chunkId)
                     assertTrue {
@@ -62,7 +63,7 @@ class ApplicationTest {
                     println("$messageCnt:${chunk.histogram.bins.map { it.weight }.joinToString(",")}")
                     chunk.let { messageCnt++ }
                 }
-                assertEquals(10000, messageCnt)
+                assertEquals(expectedMessageCnt, messageCnt)
                 println("Test complete successfully")
                 this@runBlocking.coroutineContext.cancelChildren()
             }

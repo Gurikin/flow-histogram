@@ -84,5 +84,17 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
     (chunk.histogram.bins.first().border.from > this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
 
+fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
+    (chunk.histogram.bins.first().border.from < this.border.to && chunk.histogram.bins.last().border.to > this.border.to)
+
+fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean =
+    (chunk.histogram.bins.first().border.from < this.border.from && chunk.histogram.bins.last().border.to > this.border.from)
+
+fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
+    (otherBin.border.from > this.border.from && otherBin.border.to <= this.border.to)
+
+fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
+    (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
+
 @Serializable
 data class Border<S : Comparable<S>>(val from: S, val to: S)

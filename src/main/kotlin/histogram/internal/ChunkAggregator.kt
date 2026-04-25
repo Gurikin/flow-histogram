@@ -1,8 +1,14 @@
 package org.gurikin.histogram.internal
 
 import java.util.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.chunked
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -43,21 +49,36 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     val chunks: SortedSet<Chunk<S>>,
     val chunkStorage: ChunkStorage<S>,
     val chunkQueue: ChunkQueue,
-    val scope: CoroutineScope
+    val scope: CoroutineScope,
+    val framesBufSize: Int = 200,
+    val queueSendTimeout: Duration = 1000.milliseconds,
 ) : ChunkAggregator<S> {
+
+    private val framesBuf = ArrayList<Frame<S>>(1000)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun collectData(framesFlow: Flow<Frame<S>>) {
         scope.launch {
-            framesFlow.collect { frame ->
+            framesFlow.chunked(framesBufSize).collect {
                 for (chunk in chunks) {
-                    if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
-                        chunk!!.histogram.add(frame)
-                        break
+                    for (frame in it) {
+                        if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
+                            chunk!!.histogram.add(frame)
+                            break
+                        }
                     }
+
                 }
+            }
+        }
+        scope.launch {
+            while (this.isActive) {
+                delay(queueSendTimeout)
                 for (chunk in chunks) {
                     this@DefaultChunkAggregator.sendChunkId(chunkStorage.storeChunk(chunk))
                 }
             }
+
         }
     }
 

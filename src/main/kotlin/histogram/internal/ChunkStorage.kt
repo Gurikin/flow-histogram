@@ -2,11 +2,11 @@ package org.gurikin.histogram.internal
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 /**
  * API для управления хранилищем параметров и состояния чанков
@@ -43,12 +43,15 @@ class DefaultChunkStorage<S : Comparable<S>>(val scope: CoroutineScope) : ChunkS
         return chunk.chunkId
     }
 
-    override suspend fun getChunk(chunkId: ChunkId): Chunk<S> = withTimeout(100.milliseconds) {
-        var result: Chunk<S>? = null
-        while (result == null) {
-            result = chunkMap[chunkId]
-            if (result == null) delay(2.milliseconds)
-        }
-        result
+    override suspend fun getChunk(chunkId: ChunkId): Chunk<S> {
+        val result = scope.async {
+            var result: Chunk<S>? = null
+            while (result == null) {
+                result = chunkMap[chunkId]
+                if (result == null) delay(2.milliseconds)
+            }
+            result
+        }.await()
+        return result
     }
 }

@@ -10,10 +10,10 @@ import kotlinx.coroutines.isActive
 import org.gurikin.histogram.SourceFlowGenerator
 import org.gurikin.histogram.internal.Frame
 
-class IntFlowGenerator : SourceFlowGenerator<Int> {
+class IntFlowGenerator(private val range: IntRange) : SourceFlowGenerator<Int> {
     override fun flowData(): Flow<Frame<Int>> = flow {
         while (currentCoroutineContext().isActive) {
-            emit(Frame(Random.nextInt(0..1000)))
+            emit(Frame(Random.nextInt(range)))
             delay(1)
         }
     }

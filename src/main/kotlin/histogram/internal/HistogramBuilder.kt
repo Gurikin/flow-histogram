@@ -46,7 +46,7 @@ data class HistogramConfiguration<S : Comparable<S>>(
  *
  */
 @Serializable
-public open class Histogram<S : Comparable<S>>(
+class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     var totalFrameSum: Int,
 )

@@ -54,8 +54,6 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     val queueSendTimeout: Duration = 1000.milliseconds,
 ) : ChunkAggregator<S> {
 
-    private val framesBuf = ArrayList<Frame<S>>(1000)
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun collectData(framesFlow: Flow<Frame<S>>) {
         scope.launch {
@@ -67,7 +65,6 @@ class DefaultChunkAggregator<S : Comparable<S>>(
                             break
                         }
                     }
-
                 }
             }
         }

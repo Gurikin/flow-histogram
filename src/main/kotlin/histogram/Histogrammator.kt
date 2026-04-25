@@ -3,6 +3,7 @@ package org.gurikin.histogram
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkQueue
@@ -23,6 +24,7 @@ interface Histogrammator<S : Comparable<S>> {
     suspend fun accumulate()
 }
 
+@Serializable
 class DefaultHistogrammator<S : Comparable<S>>(
     val histogram: Histogram<S>,
     private val chunkQueue: ChunkQueue,
@@ -40,7 +42,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         bin.chunkInBorder(chunk) -> accumulateChunkEntire(bin, chunk)
                         bin.chunkLeftSideInBorder(chunk) -> accumulateChunkLeftSide(bin, chunk)
                         bin.chunkRightSideInBorder(chunk) -> accumulateChunkRightSide(bin, chunk)
-                        else -> continue
+                        else -> refreshBin(bin)
                     }
                 }
             }
@@ -83,5 +85,9 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 else -> continue
             }
         }
+    }
+
+    private fun refreshBin(bin: Bin<S>) {
+        bin.weight = bin.frameSum.toDouble() / histogram.totalFrameSum
     }
 }

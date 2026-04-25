@@ -1,6 +1,8 @@
 package org.gurikin.histogram
 
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -47,7 +49,17 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 }
             }
         }
+        scope.launch {
+            while (scope.isActive) {
+                for (bin in histogram.bins) {
+                    refreshBin(bin)
+                }
+                delay(100.milliseconds)
+            }
+        }
     }
+
+    fun getTotalWeith(): Double = histogram.bins.sumOf { it.weight }
 
     private fun accumulateChunkEntire(bin: Bin<S>, chunk: Chunk<S>) {
         val chunkFrameSum = chunk.histogram.totalFrameSum

@@ -7,8 +7,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.chunked
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 /**
@@ -53,29 +53,24 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     val framesBufSize: Int = 200,
     val queueSendTimeout: Duration = 1000.milliseconds,
 ) : ChunkAggregator<S> {
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun collectData(framesFlow: Flow<Frame<S>>) {
-        scope.launch {
-            framesFlow.chunked(framesBufSize).collect {
-                for (chunk in chunks) {
-                    for (frame in it) {
-                        if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
-                            chunk!!.histogram.add(frame)
-                            break
-                        }
-                    }
+        framesFlow.onEach { frame ->
+            for (chunk in chunks) {
+                if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
+                    chunk!!.histogram.add(frame)
+                    break
                 }
             }
-        }
+        }.launchIn(scope)
         scope.launch {
-            while (this.isActive) {
-                delay(queueSendTimeout)
-                for (chunk in chunks) {
-                    this@DefaultChunkAggregator.sendChunkId(chunkStorage.storeChunk(chunk))
-                }
+            delay(queueSendTimeout)
+            chunks.filter { it.histogram.totalFrameSum > 0 }.forEach { chunk ->
+                sendChunkId(chunkStorage.storeChunk(chunk))
+                chunk.histogram.clear()
+                val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
+                println("ChunkFrames: $chunkTotalFrames")
             }
-
         }
     }
 

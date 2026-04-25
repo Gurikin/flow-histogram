@@ -43,8 +43,8 @@ class DefaultChunkStorage<S : Comparable<S>>(val scope: CoroutineScope) : ChunkS
         return chunk.chunkId
     }
 
-    override suspend fun getChunk(chunkId: ChunkId): Chunk<S> {
-        val result = scope.async {
+    override suspend fun getChunk(chunkId: ChunkId): Chunk<S> =
+        scope.async {
             var result: Chunk<S>? = null
             while (result == null) {
                 result = chunkMap[chunkId]
@@ -52,6 +52,4 @@ class DefaultChunkStorage<S : Comparable<S>>(val scope: CoroutineScope) : ChunkS
             }
             result
         }.await()
-        return result
-    }
 }

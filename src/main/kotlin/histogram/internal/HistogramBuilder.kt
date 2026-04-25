@@ -64,6 +64,15 @@ fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
     }
 }
 
+fun <S : Comparable<S>> Histogram<S>.clear() {
+    // TODO replace with binary search
+    this.bins.forEach {
+        it.weight = 0.0
+        it.frameSum = 0
+    }
+    this.totalFrameSum = 0
+}
+
 @Serializable
 class Bin<S : Comparable<S>>(val border: Border<S>) {
     internal var frameSum: Int = 0
@@ -82,7 +91,7 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from > this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
+    (chunk.histogram.bins.first().border.from >= this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
     (chunk.histogram.bins.first().border.from < this.border.to && chunk.histogram.bins.last().border.to > this.border.to)
@@ -91,7 +100,7 @@ fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean 
     (chunk.histogram.bins.first().border.from < this.border.from && chunk.histogram.bins.last().border.to > this.border.from)
 
 fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from > this.border.from && otherBin.border.to <= this.border.to)
+    (otherBin.border.from >= this.border.from && otherBin.border.to <= this.border.to)
 
 fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
     (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)

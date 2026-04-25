@@ -42,8 +42,8 @@ class DefaultChunkQueue(val scope: CoroutineScope, maxQueueSize: Int = 1000) : C
 
     override suspend fun add(chunkId: ChunkId) = chunkIdChannel.send(chunkId)
 
-    override suspend fun poll(): ChunkId {
-        val result = scope.async {
+    override suspend fun poll(): ChunkId =
+        scope.async {
             var result: ChunkId? = null
             while (result == null) {
                 result = chunkQueue.poll()
@@ -51,6 +51,4 @@ class DefaultChunkQueue(val scope: CoroutineScope, maxQueueSize: Int = 1000) : C
             }
             result
         }.await()
-        return result
-    }
 }

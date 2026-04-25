@@ -12,7 +12,7 @@ class IntFlowGenerator(private val range: IntRange, private val messagesCount: I
     override fun flowData(): Flow<Frame<Int>> = flow {
         repeat(messagesCount) {
             emit(Frame(Random.nextInt(range)))
-            delay(1)
         }
+        delay(10)
     }
 }

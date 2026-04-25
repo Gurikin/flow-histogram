@@ -10,6 +10,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.gurikin.histogram.DefaultHistogrammator
@@ -42,15 +43,20 @@ class ApplicationTest {
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
                 scope = this,
-                queueSendTimeout = 200.milliseconds,
+                queueSendTimeout = 20.milliseconds,
             )
             val expectedMessageCnt = 200
-            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
+            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, 10)
             val sourceFlow = this.async {
                 sourceFlowGenerator.flowData()
             }.await()
 
-            chunkAggregator.collectData(sourceFlow)
+            this.launch {
+                while (this.isActive) {
+                    chunkAggregator.collectData(sourceFlow)
+                    delay(20.milliseconds)
+                }
+            }
 
             this.launch {
                 var messageCnt = 1
@@ -76,16 +82,17 @@ class ApplicationTest {
     }
 
     @Test
-    fun `test histogrammator accumulate 200 messages`() {
+    fun `test histogrammator accumulate 100000 messages`() {
         runBlocking {
             val histogramBuilder = IntHistogramBuilder()
             val chunks = TreeSet<Chunk<Int>>()
             val step = 100
             val binsCount = 10
             var border = Border(0, step - 1)
-            (1..10).forEach { histogramNum ->
-                chunks.add(Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId()))
-                border = Border(histogramNum * step, histogramNum * step + step - 1)
+            (0..9).forEach { histogramNum ->
+                val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
+                chunks.add(chunk)
+                border = Border(chunk.histogram.bins.last().border.to + 1, chunk.histogram.bins.last().border.to + step)
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
@@ -94,7 +101,7 @@ class ApplicationTest {
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
                 scope = this,
-                queueSendTimeout = 20.milliseconds,
+                queueSendTimeout = 1000.milliseconds,
             )
             val expectedMessageCnt = 1000
             val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
@@ -102,10 +109,15 @@ class ApplicationTest {
                 sourceFlowGenerator.flowData()
             }.await()
 
-            chunkAggregator.collectData(sourceFlow)
+            this.launch {
+                while (this.isActive) {
+                    chunkAggregator.collectData(sourceFlow)
+                    delay(200.milliseconds)
+                }
+            }
 
             this.launch {
-                val globalBorder = Border(0, border.to)
+                val globalBorder = Border(0, chunks.last().histogram.bins.last().border.to)
                 val histogram = histogramBuilder.initHistogram(globalBorder, 10)
                 val histogrammator = DefaultHistogrammator(
                     histogram = histogram,
@@ -113,22 +125,27 @@ class ApplicationTest {
                     chunkStorage = chunkStorage,
                     scope = this
                 )
-                histogrammator.accumulate()
-                while (histogrammator.histogram.totalFrameSum < 2000) {
+                val accumulateJob = launch { histogrammator.accumulate() }
+                var totalWeight = 0.0
+                while (histogrammator.histogram.totalFrameSum < 5000) {
                     println("Accumulate general histogram...")
                     println("Total message count = ${histogrammator.histogram.totalFrameSum}")
-                    delay(500.milliseconds)
+                    delay(1000.milliseconds)
+                    totalWeight = histogrammator.getTotalWeith()
                 }
+                accumulateJob.cancel()
                 println("Test complete successfully")
                 val binsString =
                     histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.frameSum}" }
                 println("Histogram(totalFrameSum=${histogrammator.histogram.totalFrameSum}, bins=$binsString)")
+                val binsFrameSum = histogrammator.histogram.bins.sumOf { it.frameSum }
+                println("BinsFrameSum=$binsFrameSum")
                 assertEquals(
                     BigDecimal.ONE.setScale(
                         2,
                         RoundingMode.HALF_EVEN
                     ),
-                    histogrammator.histogram.bins.sumOf { it.weight }.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN)
+                    totalWeight.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN)
                 )
                 this@runBlocking.coroutineContext.cancelChildren()
             }

@@ -1,5 +1,6 @@
 package org.gurikin.histogram.internal
 
+import kotlin.math.abs
 import kotlinx.serialization.Serializable
 
 /**
@@ -80,7 +81,7 @@ class Bin<S : Comparable<S>>(val border: Border<S>) {
 }
 
 fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
-    (frame.value < this.border.to && frame.value >= this.border.from)
+    (this.border.from <= frame.value && this.border.to >= frame.value)
 
 fun <S : Comparable<S>> Bin<S>.addFrame(frame: Frame<S>) {
     this.frameSum += 1
@@ -107,3 +108,5 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
 
 @Serializable
 data class Border<S : Comparable<S>>(val from: S, val to: S)
+
+fun Border<Int>.intBorderLength(): Int = abs(this.to - this.from + 1)

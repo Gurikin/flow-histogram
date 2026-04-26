@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.add
+import org.gurikin.histogram.internal.intBorderLength
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 
 class IntHistogramBuilderTest {
@@ -18,12 +19,12 @@ class IntHistogramBuilderTest {
         val histogram = IntHistogramBuilder().initHistogram(border, binsCount)
         assertEquals(binsCount, histogram.bins.size)
         for (i in (0..<(border.to % binsCount))) {
-            assertEquals(11, histogram.bins[i].border.to - histogram.bins[i].border.from)
+            assertEquals(11, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
         }
         for (i in ((border.to % binsCount) + 1..<binsCount)) {
-            assertEquals(10, histogram.bins[i].border.to - histogram.bins[i].border.from)
+            assertEquals(10, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
         }
-        assertEquals(152, histogram.bins.sumOf { it.border.to - it.border.from })
+        assertEquals(153, histogram.bins.sumOf { it.border.intBorderLength() })
     }
 
     @Test

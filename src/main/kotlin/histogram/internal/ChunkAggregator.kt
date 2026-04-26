@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
  *  - Добавляем "точку" к нужному бину (определяется математически)
  */
 internal interface ChunkAggregator<S : Comparable<S>> {
-    suspend fun collectData(framesFlow: Flow<Frame<S>>)
+    suspend fun collectData()
     suspend fun storeChunk(chunk: Chunk<S>): ChunkId
     suspend fun sendChunkId(chunkId: ChunkId)
 }
@@ -46,15 +47,16 @@ data class ChunkId(val id: UUID = UUID.randomUUID())
  * Try to use it whith all types you need.
  */
 class DefaultChunkAggregator<S : Comparable<S>>(
-    val chunks: SortedSet<Chunk<S>>,
-    val chunkStorage: ChunkStorage<S>,
-    val chunkQueue: ChunkQueue,
-    val scope: CoroutineScope,
-    val framesBufSize: Int = 200,
-    val queueSendTimeout: Duration = 1000.milliseconds,
+    private val framesFlow: Flow<Frame<S>>,
+    private val chunks: SortedSet<Chunk<S>>,
+    private val chunkStorage: ChunkStorage<S>,
+    private val chunkQueue: ChunkQueue,
+    private val scope: CoroutineScope,
+    private val framesBufSize: Int = 200,
+    private val queueSendTimeout: Duration = 1000.milliseconds,
 ) : ChunkAggregator<S> {
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun collectData(framesFlow: Flow<Frame<S>>) {
+
+    init {
         framesFlow.onEach { frame ->
             for (chunk in chunks) {
                 if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
@@ -63,13 +65,19 @@ class DefaultChunkAggregator<S : Comparable<S>>(
                 }
             }
         }.launchIn(scope)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun collectData() {
         scope.launch {
-            delay(queueSendTimeout)
-            chunks.filter { it.histogram.totalFrameSum > 0 }.forEach { chunk ->
-                sendChunkId(chunkStorage.storeChunk(chunk))
-                chunk.histogram.clear()
-                val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
-                println("ChunkFrames: $chunkTotalFrames")
+            while (scope.isActive) {
+                delay(queueSendTimeout)
+                chunks.filter { it.histogram.totalFrameSum > 0 }.forEach { chunk ->
+                    sendChunkId(storeChunk(chunk))
+                    chunk.histogram.clear()
+                    val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
+                    println("ChunkFrames: $chunkTotalFrames")
+                }
             }
         }
     }

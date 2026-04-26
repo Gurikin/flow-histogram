@@ -38,22 +38,23 @@ class ApplicationTest {
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
+            val expectedMessageCnt = 200
+            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, 10)
+            val sourceFlow = this.async {
+                sourceFlowGenerator.flowData()
+            }.await()
             val chunkAggregator = DefaultChunkAggregator(
+                framesFlow = sourceFlow,
                 chunks = chunks,
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
                 scope = this,
                 queueSendTimeout = 20.milliseconds,
             )
-            val expectedMessageCnt = 200
-            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, 10)
-            val sourceFlow = this.async {
-                sourceFlowGenerator.flowData()
-            }.await()
 
             this.launch {
                 while (this.isActive) {
-                    chunkAggregator.collectData(sourceFlow)
+                    chunkAggregator.collectData()
                     delay(20.milliseconds)
                 }
             }
@@ -96,25 +97,22 @@ class ApplicationTest {
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
+            val expectedMessageCnt = 1000
+            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
+            val sourceFlow = this.async {
+                sourceFlowGenerator.flowData()
+            }.await()
             val chunkAggregator = DefaultChunkAggregator(
+                framesFlow = sourceFlow,
                 chunks = chunks,
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
                 scope = this,
                 queueSendTimeout = 100.milliseconds,
             )
-            val expectedMessageCnt = 1000
-            val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
-            val sourceFlow = this.async {
-                sourceFlowGenerator.flowData()
-            }.await()
 
-            this.launch {
-                while (this.isActive) {
-                    chunkAggregator.collectData(sourceFlow)
-                    delay(20.milliseconds)
-                }
-            }
+            chunkAggregator.collectData()
+
 
             this.launch {
                 val globalBorder = Border(0, chunks.last().histogram.bins.last().border.to)

@@ -82,7 +82,7 @@ class ApplicationTest {
     }
 
     @Test
-    fun `test histogrammator accumulate 100000 messages`() {
+    fun `test histogrammator accumulate 5000 messages`() {
         runBlocking {
             val histogramBuilder = IntHistogramBuilder()
             val chunks = TreeSet<Chunk<Int>>()
@@ -101,7 +101,7 @@ class ApplicationTest {
                 chunkStorage = chunkStorage,
                 chunkQueue = chunkQueue,
                 scope = this,
-                queueSendTimeout = 1000.milliseconds,
+                queueSendTimeout = 100.milliseconds,
             )
             val expectedMessageCnt = 1000
             val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
@@ -112,7 +112,7 @@ class ApplicationTest {
             this.launch {
                 while (this.isActive) {
                     chunkAggregator.collectData(sourceFlow)
-                    delay(200.milliseconds)
+                    delay(20.milliseconds)
                 }
             }
 

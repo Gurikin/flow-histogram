@@ -1,5 +1,7 @@
 package org.gurikin.histogram.internal
 
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
 import kotlinx.serialization.Serializable
 
@@ -47,21 +49,42 @@ data class HistogramConfiguration<S : Comparable<S>>(
  *
  */
 @Serializable
+@OptIn(ExperimentalAtomicApi::class)
 class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
-    var totalFrameSum: Int,
-)
+    private var totalFrameSum: Int,
+    private val _totalFrameSum: AtomicInt = AtomicInt(0)
+) {
 
-fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
+    fun initFrameSum() {
+        _totalFrameSum.store(0)
+        totalFrameSum = _totalFrameSum.load()
+    }
+
+    fun incrementFrameSum(incrementValue: Int) {
+        totalFrameSum = _totalFrameSum.addAndFetch(incrementValue)
+    }
+
+    fun getFrameSum(): Int {
+        return if (_totalFrameSum.load() == totalFrameSum) {
+            totalFrameSum
+        } else {
+            throw RuntimeException("Histogram TotalFrameSum unsync")
+        }
+    }
+}
+
+suspend fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
     // TODO replace with binary search
     for (bin in this.bins) {
         if (bin.frameInBorder(value)) {
-            this.totalFrameSum += 1
+            incrementFrameSum(1)
             bin.addFrame(value)
+            break
         }
     }
     this.bins.forEach { bin ->
-        bin.setWeight(bin.frameSum.toDouble() / this.totalFrameSum)
+        bin.setWeight(bin.getFrameSum().toDouble() / this.getFrameSum())
     }
 }
 
@@ -69,28 +92,64 @@ fun <S : Comparable<S>> Histogram<S>.clear() {
     // TODO replace with binary search
     this.bins.forEach {
         it.weight = 0.0
-        it.frameSum = 0
+        it.initFrameSum()
     }
-    this.totalFrameSum = 0
+    this.initFrameSum()
 }
 
-fun <S : Comparable<S>> Histogram<S>.copy() =
-    Histogram(
-        bins = this.bins.toList(),
-        totalFrameSum = this.totalFrameSum
+@OptIn(ExperimentalAtomicApi::class)
+fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
+    val binList = mutableListOf<Bin<S>>()
+    this.bins.forEach {
+        binList.add(it.copy())
+    }
+    return Histogram(
+        bins = binList,
+        totalFrameSum = this.getFrameSum(),
+        _totalFrameSum = AtomicInt(this.getFrameSum())
     )
+}
 
 @Serializable
-class Bin<S : Comparable<S>>(val border: Border<S>) {
-    internal var frameSum: Int = 0
-    internal var weight: Double = 0.0
+@OptIn(ExperimentalAtomicApi::class)
+class Bin<S : Comparable<S>>(
+    val border: Border<S>,
+    private var frameSum: Int = 0,
+    internal var weight: Double = 0.0,
+    private val _frameSum: AtomicInt = AtomicInt(0),
+) {
+
+    fun initFrameSum() {
+        _frameSum.store(0)
+        frameSum = _frameSum.load()
+    }
+
+    fun incrementFrameSum(incrementValue: Int) {
+        frameSum = _frameSum.addAndFetch(incrementValue)
+    }
+
+    fun getFrameSum(): Int {
+        return if (_frameSum.load() == frameSum) {
+            frameSum
+        } else {
+            throw RuntimeException("Bin FrameSum unsync")
+        }
+    }
 }
+
+@OptIn(ExperimentalAtomicApi::class)
+fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
+    border = this.border,
+    frameSum = this.getFrameSum(),
+    weight = this.weight,
+    _frameSum = AtomicInt(this.getFrameSum())
+)
 
 fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
     (this.border.from <= frame.value && this.border.to >= frame.value)
 
 fun <S : Comparable<S>> Bin<S>.addFrame(frame: Frame<S>) {
-    this.frameSum += 1
+    this.incrementFrameSum(1)
 }
 
 fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {

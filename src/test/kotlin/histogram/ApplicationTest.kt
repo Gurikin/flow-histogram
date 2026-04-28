@@ -186,23 +186,21 @@ class ApplicationTest {
                     chunkStorage = chunkStorage,
                     scope = this
                 )
-                launch { histogrammator.accumulate() }.join()
+                val accumulateJob = launch { histogrammator.accumulate() }
                 var totalWeight = 0.0
                 val expectedMessageCnt = 100
-                while (histogrammator.histogram.totalFrameSum < expectedMessageCnt) {
+                while (histogrammator.histogram.getFrameSum() < expectedMessageCnt) {
                     println("Accumulate general histogram...")
-                    println("Total message count = ${histogrammator.histogram.totalFrameSum}")
+                    println("Total message count = ${histogrammator.histogram.getFrameSum()}")
                     delay(1000.milliseconds)
                     totalWeight = histogrammator.getTotalWeith()
-                    val binsString =
-                        histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.frameSum}" }
-                    println("Histogram(totalFrameSum=${histogrammator.histogram.totalFrameSum}, bins=$binsString)")
                 }
+                accumulateJob.cancel()
                 println("Test complete successfully")
                 val binsString =
-                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.frameSum}" }
-                println("Histogram(totalFrameSum=${histogrammator.histogram.totalFrameSum}, bins=$binsString)")
-                val binsFrameSum = histogrammator.histogram.bins.sumOf { it.frameSum }
+                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.getFrameSum()}" }
+                println("Histogram(totalFrameSum=${histogrammator.histogram.getFrameSum()}, bins=$binsString)")
+                val binsFrameSum = histogrammator.histogram.bins.sumOf { it.getFrameSum() }
                 println("BinsFrameSum=$binsFrameSum")
                 assertEquals(
                     BigDecimal.ONE.setScale(

@@ -83,8 +83,8 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     }
 
     private suspend fun sendChunks() {
-        val filteredChunks = chunks.filter { it.histogram.totalFrameSum > 0 }
-        val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
+        val filteredChunks = chunks.filter { it.histogram.getFrameSum() > 0 }
+        val chunkTotalFrames = chunks.sumOf { it.histogram.getFrameSum() }
         println("[ChunkAggregator] ChunksTotalFrames: $chunkTotalFrames")
 
         filteredChunks.forEach { chunk ->

@@ -1,5 +1,6 @@
 package org.gurikin.histogram.num_histogram
 
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
 import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Border
@@ -13,6 +14,7 @@ import org.gurikin.histogram.internal.HistogramBuilder
  *
  * Only 1D histogram are possible now
  */
+@OptIn(ExperimentalAtomicApi::class)
 class IntHistogramBuilder : HistogramBuilder<Int> {
     override fun initHistogram(
         border: Border<Int>,

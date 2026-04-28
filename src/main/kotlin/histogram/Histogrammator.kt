@@ -64,21 +64,19 @@ class DefaultHistogrammator<S : Comparable<S>>(
     fun getTotalWeith(): Double = histogram.bins.sumOf { it.weight }
 
     private fun accumulateChunkEntire(bin: Bin<S>, chunk: Chunk<S>) {
-        val chunkFrameSum = chunk.histogram.totalFrameSum
-        histogram.totalFrameSum -= bin.frameSum
-        bin.frameSum += chunkFrameSum
-        histogram.totalFrameSum += bin.frameSum
-        bin.weight = bin.frameSum.toDouble() / histogram.totalFrameSum
+        val chunkFrameSum = chunk.histogram.getFrameSum()
+        histogram.incrementFrameSum(chunkFrameSum)
+        bin.incrementFrameSum(chunkFrameSum)
+        bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
     }
 
     private fun accumulateChunkLeftSide(bin: Bin<S>, chunk: Chunk<S>) {
         for (chunkBin in chunk.histogram.bins) {
             when {
                 bin.binInBorder(chunkBin) || bin.binIsCrossingBorder(chunkBin) -> {
-                    histogram.totalFrameSum -= bin.frameSum
-                    bin.frameSum += chunkBin.frameSum
-                    histogram.totalFrameSum += bin.frameSum
-                    bin.weight = bin.frameSum.toDouble() / histogram.totalFrameSum
+                    bin.incrementFrameSum(chunkBin.getFrameSum())
+                    histogram.incrementFrameSum(chunkBin.getFrameSum())
+                    bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
                 }
 
                 else -> continue
@@ -89,11 +87,10 @@ class DefaultHistogrammator<S : Comparable<S>>(
     private fun accumulateChunkRightSide(bin: Bin<S>, chunk: Chunk<S>) {
         for (chunkBin in chunk.histogram.bins) {
             when {
-                chunkBin.binInBorder(bin) -> {
-                    histogram.totalFrameSum -= bin.frameSum
-                    bin.frameSum += chunkBin.frameSum
-                    histogram.totalFrameSum += bin.frameSum
-                    bin.weight = bin.frameSum.toDouble() / histogram.totalFrameSum
+                bin.binInBorder(chunkBin) -> {
+                    bin.incrementFrameSum(chunkBin.getFrameSum())
+                    histogram.incrementFrameSum(chunkBin.getFrameSum())
+                    bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
                 }
 
                 else -> continue
@@ -102,6 +99,6 @@ class DefaultHistogrammator<S : Comparable<S>>(
     }
 
     private fun refreshBin(bin: Bin<S>) {
-        bin.weight = bin.frameSum.toDouble() / histogram.totalFrameSum
+        bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
     }
 }

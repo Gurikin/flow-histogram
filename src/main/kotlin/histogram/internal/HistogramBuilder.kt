@@ -74,6 +74,12 @@ fun <S : Comparable<S>> Histogram<S>.clear() {
     this.totalFrameSum = 0
 }
 
+fun <S : Comparable<S>> Histogram<S>.copy() =
+    Histogram(
+        bins = this.bins.toList(),
+        totalFrameSum = this.totalFrameSum
+    )
+
 @Serializable
 class Bin<S : Comparable<S>>(val border: Border<S>) {
     internal var frameSum: Int = 0

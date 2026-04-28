@@ -37,6 +37,11 @@ data class Chunk<S : Comparable<S>>(
 ) : Comparable<Chunk<S>> {
     override fun compareTo(other: Chunk<S>): Int =
         this.histogram.bins[0].border.from.compareTo(other.histogram.bins[0].border.from)
+
+    fun copy(): Chunk<S> = Chunk(
+        histogram = this.histogram.copy(),
+        chunkId = this.chunkId.copy(),
+    )
 }
 
 data class ChunkId(val id: UUID = UUID.randomUUID())
@@ -47,7 +52,7 @@ data class ChunkId(val id: UUID = UUID.randomUUID())
  * Try to use it whith all types you need.
  */
 class DefaultChunkAggregator<S : Comparable<S>>(
-    private val framesFlow: Flow<Frame<S>>,
+    private val framesFlow: Flow<Frame<S>?>,
     private val chunks: SortedSet<Chunk<S>>,
     private val chunkStorage: ChunkStorage<S>,
     private val chunkQueue: ChunkQueue,
@@ -56,29 +61,36 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     private val queueSendTimeout: Duration = 1000.milliseconds,
 ) : ChunkAggregator<S> {
 
-    init {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun collectData() {
         framesFlow.onEach { frame ->
             for (chunk in chunks) {
-                if (chunk.histogram.bins.first().border.from <= frame.value && chunk.histogram.bins.last().border.to > frame.value) {
-                    chunk!!.histogram.add(frame)
+                if (chunk.histogram.bins.first().border.from <= frame!!.value
+                    && chunk.histogram.bins.last().border.to >= frame.value
+                ) {
+                    chunk.histogram.add(frame)
+                    println("[ChunkAggregator] Frame: ${frame.value}")
                     break
                 }
             }
         }.launchIn(scope)
+        scope.launch {
+            while (isActive) {
+                delay(queueSendTimeout)
+                sendChunks()
+            }
+        }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun collectData() {
-        scope.launch {
-            while (scope.isActive) {
-                delay(queueSendTimeout)
-                chunks.filter { it.histogram.totalFrameSum > 0 }.forEach { chunk ->
-                    sendChunkId(storeChunk(chunk))
-                    chunk.histogram.clear()
-                    val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
-                    println("ChunkFrames: $chunkTotalFrames")
-                }
-            }
+    private suspend fun sendChunks() {
+        val filteredChunks = chunks.filter { it.histogram.totalFrameSum > 0 }
+        val chunkTotalFrames = chunks.sumOf { it.histogram.totalFrameSum }
+        println("[ChunkAggregator] ChunksTotalFrames: $chunkTotalFrames")
+
+        filteredChunks.forEach { chunk ->
+            val chunkCopy = chunk.copy()
+            sendChunkId(storeChunk(chunkCopy))
+            chunk.histogram.clear()
         }
     }
 

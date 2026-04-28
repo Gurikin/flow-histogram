@@ -12,7 +12,7 @@ import org.gurikin.histogram.SourceFlowGenerator
 import org.gurikin.histogram.internal.Frame
 
 class IntFlowGenerator(private val range: IntRange, private val messagesCount: Int = 1000) : SourceFlowGenerator<Int> {
-    override fun flowData(): Flow<Frame<Int>> = flow {
+    override fun flowData() = flow {
         while (currentCoroutineContext().isActive) {
             repeat(messagesCount) {
                 emit(Frame(Random.nextInt(range)))

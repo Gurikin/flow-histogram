@@ -11,5 +11,5 @@ import org.gurikin.histogram.internal.Frame
  * Moved to the external API for have possible implement users types of source data flow
  */
 interface SourceFlowGenerator<S: Comparable<S>> {
-    fun flowData(): Flow<Frame<S>>
+    fun flowData(): Flow<Frame<S>?>
 }

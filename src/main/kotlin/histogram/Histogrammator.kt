@@ -36,9 +36,10 @@ class DefaultHistogrammator<S : Comparable<S>>(
 
     override suspend fun accumulate() {
         scope.launch {
-            while (scope.isActive) {
+            while (true) {
                 val chunkId = chunkQueue.poll()
                 val chunk: Chunk<S> = chunkStorage.getChunk(chunkId)
+
                 for (bin in histogram.bins) {
                     when {
                         bin.chunkInBorder(chunk) -> accumulateChunkEntire(bin, chunk)
@@ -47,6 +48,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         else -> refreshBin(bin)
                     }
                 }
+                delay(10.milliseconds)
             }
         }
         scope.launch {

@@ -16,6 +16,7 @@ import org.gurikin.histogram.internal.binIsCrossingBorder
 import org.gurikin.histogram.internal.chunkInBorder
 import org.gurikin.histogram.internal.chunkLeftSideInBorder
 import org.gurikin.histogram.internal.chunkRightSideInBorder
+import org.gurikin.histogram.internal.setWeight
 
 /**
  * Facade for start build histogram from flow data.
@@ -67,7 +68,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
         val chunkFrameSum = chunk.histogram.getFrameSum()
         histogram.incrementFrameSum(chunkFrameSum)
         bin.incrementFrameSum(chunkFrameSum)
-        bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
+        bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
     }
 
     private fun accumulateChunkLeftSide(bin: Bin<S>, chunk: Chunk<S>) {
@@ -76,7 +77,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 bin.binInBorder(chunkBin) || bin.binIsCrossingBorder(chunkBin) -> {
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
-                    bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
+                    bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
                 }
 
                 else -> continue
@@ -90,7 +91,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 bin.binInBorder(chunkBin) -> {
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
-                    bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
+                    bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
                 }
 
                 else -> continue
@@ -99,6 +100,9 @@ class DefaultHistogrammator<S : Comparable<S>>(
     }
 
     private fun refreshBin(bin: Bin<S>) {
-        bin.weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
+        if (histogram.getFrameSum() == 0) {
+            return
+        }
+        bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
     }
 }

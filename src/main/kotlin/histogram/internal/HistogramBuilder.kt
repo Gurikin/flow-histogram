@@ -1,9 +1,12 @@
 package org.gurikin.histogram.internal
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -53,6 +56,7 @@ data class HistogramConfiguration<S : Comparable<S>>(
 class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
+    @Transient
     private val _totalFrameSum: AtomicInt = AtomicInt(0)
 ) {
 
@@ -116,6 +120,7 @@ class Bin<S : Comparable<S>>(
     val border: Border<S>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
+    @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
 ) {
 
@@ -153,7 +158,7 @@ fun <S : Comparable<S>> Bin<S>.addFrame(frame: Frame<S>) {
 }
 
 fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
-    this.weight = weight
+    this.weight = BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =

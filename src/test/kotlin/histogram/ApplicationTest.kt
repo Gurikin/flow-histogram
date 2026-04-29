@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
@@ -195,9 +196,7 @@ class ApplicationTest {
                 }
                 accumulateJob.cancel()
                 println("Test complete successfully")
-                val binsString =
-                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.getFrameSum()}" }
-                println("Histogram(totalFrameSum=${histogrammator.histogram.getFrameSum()}, bins=$binsString)")
+                println(Json.encodeToString(histogrammator.histogram))
                 val binsFrameSum = histogrammator.histogram.bins.sumOf { it.getFrameSum() }
                 println("BinsFrameSum=$binsFrameSum")
                 assertEquals(

@@ -1,13 +1,16 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlin.plugin.serialization)
+    id("org.openjfx.javafxplugin") version "0.1.0"
+    id("application")
 }
 
 group = "org.gurikin"
 version = "0.0.1"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    mainClass = "org.gurikin.WeightDisplayApp"
 }
 
 kotlin {
@@ -15,6 +18,9 @@ kotlin {
 }
 
 dependencies {
+    implementation("org.openjfx:javafx-controls:17")
+    implementation("org.openjfx:javafx-fxml:17")
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
@@ -22,4 +28,10 @@ dependencies {
     implementation(libs.ktor.server.config.yaml)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.junit.jupiter)
+}
+
+javafx {
+    version = "17"
+    modules = listOf("javafx.controls")
 }

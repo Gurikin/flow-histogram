@@ -1,40 +1,24 @@
 # flow-histogram
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
+## Документация
 
-Here are some useful links to get you started:
+### API
+./docs/ApiClassesList.md
 
-- [Ktor Documentation](https://ktor.io/docs/home.html)
-- [Ktor GitHub page](https://github.com/ktorio/ktor)
-- The [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). You'll need to [request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up) to join.
+### Sequence Diagram
+./docs/sequence.puml
 
-## Features
+### Презентация
+./docs/Banchikov_Igor__Histogram__v0.2.pdf
 
-Here's a list of features included in this project:
+## Результаты промежуточного этапа
 
-| Name                                                | Description                                                 |
-| -----------------------------------------------------|------------------------------------------------------------- |
-| [Raw Sockets](https://start.ktor.io/p/ktor-network) | Adds raw socket support for TCP and UDP                     |
-| [Routing](https://start.ktor.io/p/routing-default)  | Allows to define structured routes and associated handlers. |
-
-## Building & Running
-
-To build or run the project, use one of the following tasks:
-
-| Task                                    | Description                                                          |
-| -----------------------------------------|---------------------------------------------------------------------- |
-| `./gradlew test`                        | Run the tests                                                        |
-| `./gradlew build`                       | Build everything                                                     |
-| `./gradlew buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `./gradlew buildImage`                  | Build the docker image to use with the fat JAR                       |
-| `./gradlew publishImageToLocalRegistry` | Publish the docker image locally                                     |
-| `./gradlew run`                         | Run the server                                                       |
-| `./gradlew runDocker`                   | Run using the local docker image                                     |
-
-If the server starts successfully, you'll see the following output:
-
-```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
-
+1. Сделан функционал для демонстрации работы гистограмматора потоковых данных для одномерной целочисленной гистограммы.
+   1. Разработана система интерфейсов
+   2. Созданы дефолтные реализации данных интерфейсов
+   3. Для генератора потоковых данных и для конфигуратора гистограммы сделаны реализации для целочисленных значений
+2. Сделано десктопное приложение для демонстраци распределения весов по бинам в общей гистограмме.
+3. Записано демонстрационное видео, которое можно скачать по ссылке: https://disk.yandex.ru/i/9Ri_aM3zx-cmfg (144МБ)
+4. Код выложен на github. С ним можно ознакомиться по ссылке:
+   https://github.com/Gurikin/flow-histogram
+5. Документация по api и архитектуре лежит в папке docs

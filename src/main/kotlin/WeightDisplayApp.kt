@@ -186,7 +186,7 @@ fun launchHistogrammator() = runBlocking {
         }
 
         val checkHistogrammatorJob = launch {
-            while (histogrammator.histogram.getFrameSum() < 1000000) {
+            while (histogrammator.histogram.getFrameSum() < 200000) {
                 println("Accumulate general histogram...")
                 println("Total message count = ${histogrammator.histogram.getFrameSum()}")
                 delay(1000.milliseconds)

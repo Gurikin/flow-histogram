@@ -129,7 +129,7 @@ class ApplicationTest {
                     println("Accumulate general histogram...")
                     println("Total message count = ${histogrammator.histogram.getFrameSum()}")
                     delay(1000.milliseconds)
-                    totalWeight = histogrammator.getTotalWeith()
+                    totalWeight = histogrammator.getTotalWeight()
                 }
                 accumulateJob.cancel()
                 println("Test complete successfully")
@@ -192,7 +192,7 @@ class ApplicationTest {
                     println("Accumulate general histogram...")
                     println("Total message count = ${histogrammator.histogram.getFrameSum()}")
                     delay(1000.milliseconds)
-                    totalWeight = histogrammator.getTotalWeith()
+                    totalWeight = histogrammator.getTotalWeight()
                 }
                 accumulateJob.cancel()
                 println("Test complete successfully")

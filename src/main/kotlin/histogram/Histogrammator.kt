@@ -62,7 +62,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
         }
     }
 
-    fun getTotalWeith(): Double = histogram.bins.sumOf { it.weight }
+    fun getTotalWeight(): Double = histogram.bins.sumOf { it.weight }
 
     private fun accumulateChunkEntire(bin: Bin<S>, chunk: Chunk<S>) {
         val chunkFrameSum = chunk.histogram.getFrameSum()

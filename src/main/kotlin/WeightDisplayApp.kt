@@ -32,6 +32,8 @@ import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
+import org.gurikin.utils.watchDir
+import kotlin.io.path.absolutePathString
 
 class WeightDisplayApp : Application() {
 
@@ -59,21 +61,18 @@ class WeightDisplayApp : Application() {
 
     private fun startUpdating(root: HBox) {
         scope.launch {
-            while (isActive) {
-                val filePath = getFilePathFromUser()
-                updateDisplay(filePath, root)
-                delay(1000)
-            }
+            val filePath = getFilePathFromUser()
+            val dir = File(filePath).toPath().parent
+            watchDir(dir) { updateDisplay(filePath, root) }
         }
     }
 
-    private suspend fun updateDisplay(filePath: String, root: HBox) {
-        withContext(Dispatchers.IO) {
+    private fun updateDisplay(filePath: String, root: HBox) {
             try {
                 val file = File(filePath)
                 if (!file.exists()) {
                     println("File not found: $filePath")
-                    return@withContext
+                    return
                 }
                 val content = file.readText()
                 val rootData = json.decodeFromString<Histogram<Int>>(content)
@@ -89,7 +88,6 @@ class WeightDisplayApp : Application() {
             } catch (e: Exception) {
                 println("Error reading/parsing file: ${e.message}")
             }
-        }
     }
 
     private fun updateUI(weights: List<Double>, root: HBox) {
@@ -163,7 +161,7 @@ fun launchHistogrammator() = runBlocking {
         chunkStorage = chunkStorage,
         chunkQueue = chunkQueue,
         scope = this,
-        queueSendTimeout = 1000.milliseconds,
+        queueSendTimeout = 100.milliseconds,
     )
 
     this.launch { chunkAggregator.collectData() }
@@ -189,7 +187,7 @@ fun launchHistogrammator() = runBlocking {
             while (histogrammator.histogram.getFrameSum() < 200000) {
                 println("Accumulate general histogram...")
                 println("Total message count = ${histogrammator.histogram.getFrameSum()}")
-                delay(1000.milliseconds)
+                delay(500.milliseconds)
                 runCatching { file.writeText(Json.encodeToString(histogrammator.histogram)) }
             }
         }

@@ -69,7 +69,7 @@ class DefaultChunkAggregator<S : Comparable<S>>(
                     && chunk.histogram.bins.last().border.to >= frame.value
                 ) {
                     chunk.histogram.add(frame)
-                    println("[ChunkAggregator] Frame: ${frame.value}")
+//                    println("[ChunkAggregator] Frame: ${frame.value}")
                     break
                 }
             }

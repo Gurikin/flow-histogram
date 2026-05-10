@@ -1,12 +1,19 @@
 package org.gurikin.histogram.internal
 
+import kotlinx.serialization.Serializable
+
 /**
  * API for work with histogram's configuration
- * Parse source configuration (.yaml file for example) and create [HistogramConfiguration]
+ * Parse source configuration (.json file for example) and create [HistogramConfiguration]
  *  with some internal class of data ([Int], [Long], [Double], [Float], etc.)
  */
-public interface ConfigurationParser {
-    fun <T, S: Comparable<S>> parseConfiguration(sourceConfig: T): HistogramConfiguration<S>
+interface ConfigurationParser<in T, S : Comparable<S>> {
+    fun parseConfiguration(sourceConfig: T): HistogramConfiguration<S>
 }
 
-
+@Serializable
+class HistogramConfiguration<S : Comparable<S>>(
+    val histogramBorder: Border<S>,
+    val sourceType: HistogramSourceTypesEnum,
+    val minStep: S,
+)

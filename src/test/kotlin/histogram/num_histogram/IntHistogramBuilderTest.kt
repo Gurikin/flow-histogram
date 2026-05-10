@@ -1,17 +1,17 @@
 package histogram.num_histogram
 
+import kotlinx.coroutines.test.runTest
+import org.gurikin.histogram.internal.*
+import org.gurikin.histogram.num_histogram.IntHistogramBuilder
+import org.junit.jupiter.api.DisplayName
+import kotlin.math.log2
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlinx.coroutines.test.runTest
-import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Frame
-import org.gurikin.histogram.internal.add
-import org.gurikin.histogram.internal.intBorderLength
-import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 
 class IntHistogramBuilderTest {
     @Test
-    fun initHistogram() {
+    @DisplayName("Test init histogram with manually defined bins count")
+    fun initManuallyHistogram() {
         val border = Border(
             from = 0,
             to = 152
@@ -19,7 +19,7 @@ class IntHistogramBuilderTest {
         val binsCount = 14
         val histogram = IntHistogramBuilder().initHistogram(border, binsCount)
         assertEquals(binsCount, histogram.bins.size)
-        for (i in (0..<(border.to % binsCount))) {
+        for (i in (0..(border.to % binsCount))) {
             assertEquals(11, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
         }
         for (i in ((border.to % binsCount) + 1..<binsCount)) {
@@ -74,5 +74,27 @@ class IntHistogramBuilderTest {
             assertEquals(40.0 / 100.toDouble(), histogram.bins[1].weight)
             assertEquals(10.0 / 100.toDouble(), histogram.bins[2].weight)
         }
+    }
+
+    @Test
+    @DisplayName("Test init histogram by configuration with calculation of bins count")
+    fun initHistogramByConfiguration() {
+        val border = Border(
+            from = 0,
+            to = 152
+        )
+        val minStep = 1
+        val type = HistogramSourceTypesEnum.INT
+        val configuration = HistogramConfiguration(border, type, minStep)
+        val histogram = IntHistogramBuilder().initHistogram(configuration)
+        val binsCount = 8 //calculated manually by formula from [org.gurikin.histogram.num_histogram.IntHistogramBuilder.calcBinsCount]
+        assertEquals(binsCount, histogram.bins.size)
+        for (i in (0..(border.to % binsCount))) {
+            assertEquals(20, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
+        }
+        for (i in ((border.to % binsCount) + 1..<binsCount)) {
+            assertEquals(19, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
+        }
+        assertEquals(153, histogram.bins.sumOf { it.border.intBorderLength() })
     }
 }

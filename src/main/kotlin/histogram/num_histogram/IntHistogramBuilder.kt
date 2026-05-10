@@ -1,11 +1,9 @@
 package org.gurikin.histogram.num_histogram
 
+import org.gurikin.histogram.internal.*
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
-import org.gurikin.histogram.internal.Bin
-import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Histogram
-import org.gurikin.histogram.internal.HistogramBuilder
+import kotlin.math.log2
 
 /**
  * Implementaion of [HistogramBuilder] for [Int] type
@@ -17,6 +15,13 @@ import org.gurikin.histogram.internal.HistogramBuilder
 @OptIn(ExperimentalAtomicApi::class)
 class IntHistogramBuilder : HistogramBuilder<Int> {
     override fun initHistogram(
+        border: Border<Int>,
+        binsCount: Int
+    ): Histogram<Int> {
+        return createHistogram(border, binsCount)
+    }
+
+    private fun createHistogram(
         border: Border<Int>,
         binsCount: Int
     ): Histogram<Int> {
@@ -41,10 +46,25 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
     private fun reminderOfDivision(border: Border<Int>, binsCount: Int): Int =
         border.let { (it.to - it.from + 1) % binsCount }
 
-    private fun Int.addCorrectionToBin(): Int =
-        if (this == 0) {
-            0
-        } else {
-            1
-        }
+    private fun Int.addCorrectionToBin(): Int = if (this == 0) 0 else 1
+
+    override fun initHistogram(histogramConfiguration: HistogramConfiguration<Int>): Histogram<Int> {
+        val border = histogramConfiguration.histogramBorder
+        val binsCount = calcBinsCount(histogramConfiguration)
+        return createHistogram(border, binsCount)
+    }
+
+    /**
+     * Base formula for calculating histogram bins count $n = 1 + log_2(N)$
+     * N - number of all possible elements in histogram's border:
+     *  `N = (histogramConfiguration.histogramBorder.to - histogramConfiguration.histogramBorder.from) / histogramConfiguration.minStep`
+     *
+     * @param histogramConfiguration
+     * @return
+     */
+    private fun calcBinsCount(histogramConfiguration: HistogramConfiguration<Int>): Int {
+        val stepCount = (histogramConfiguration.histogramBorder.to - histogramConfiguration.histogramBorder.from) / histogramConfiguration.minStep
+        return (1 + log2(stepCount.toDouble())).toInt()
+    }
+
 }

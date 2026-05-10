@@ -1,12 +1,12 @@
 package org.gurikin.histogram.internal
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -18,35 +18,33 @@ import kotlinx.serialization.Transient
  *    - размер каждого чанка
  */
 interface HistogramBuilder<S : Comparable<S>> {
+    /**
+     * Init a histogram with manually defined binsCount
+     *
+     * @param border [Border] histogram borders (from and to)
+     * @param binsCount histogram bins count
+     * @return
+     */
     fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
+
+    /**
+     * Init a histogram with define binsCount by Sturges formula
+     *
+     * @param histogramConfiguration [HistogramConfiguration] histogram configuration
+     *   (border [Border], step [S], type [HistogramSourceTypesEnum])
+     * @return [Histogram] with source type [S]
+     */
+    fun initHistogram(histogramConfiguration: HistogramConfiguration<S>): Histogram<S>
 }
-
-//fun HistogramBuilder<*>.createBuilder(): HistogramBuilder<*> {
-//    when {
-//        this.value is Int -> return IntHistogramBuilder()
-//        else -> throw UnsupportedOperationException("HistogramBuilder for type ${this.value::class.qualifiedName} not implemented yet")
-//    }
-//}
-
-@Serializable
-data class HistogramConfiguration<S : Comparable<S>>(
-    val histogramBorder: Border<S>,
-    val binsCount: Int,
-)
 
 /**
  * Алгоритм для одномерной гистограммы:
  *
  * 1. Находится номер бина, соответствующий значению `x`, с помощью метода `TAxis::FindBin`. Для равномерных бинов индекс вычисляется как `floor((x - xmin) / width) + 1` с учётом underflow/overflow. Для неравномерных бинов используется бинарный поиск по массиву границ.
- *
  * 2. Увеличивается счётчик записей (`fEntries`).
- *
  * 3. Вызывается виртуальный метод `AddBinContent(bin, weight)`, который в классах-наследниках (TH1C, TH1S, TH1I, TH1F, TH1D) инкрементирует соответствующее значение в массиве с проверкой на переполнение.
- *
  * 4. Если включено хранение суммы квадратов весов (`Sumw2`), обновляется массив `fSumw2`.
- *
  * 5. Обновляются статистические суммы (`fTsumw`, `fTsumw2`, `fTsumwx`, `fTsumwx2`) для вычисления среднего и среднеквадратичного отклонения.
- *
  *
  * Для многомерных гистограмм (TH2, TH3) логика аналогична, только номер бина вычисляется как глобальный индекс по формуле: `bin = binx + nx * (biny + ny * binz)`, где `nx`, `ny` – число бинов по осям плюс underflow/overflow.
  *

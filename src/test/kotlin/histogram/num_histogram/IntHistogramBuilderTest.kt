@@ -4,7 +4,6 @@ import kotlinx.coroutines.test.runTest
 import org.gurikin.histogram.internal.*
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.DisplayName
-import kotlin.math.log2
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +24,7 @@ class IntHistogramBuilderTest {
         for (i in ((border.to % binsCount) + 1..<binsCount)) {
             assertEquals(10, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { it.border.intBorderLength() })
+        assertEquals(153, histogram.bins.sumOf { it.border.borderLength() })
     }
 
     @Test
@@ -95,6 +94,6 @@ class IntHistogramBuilderTest {
         for (i in ((border.to % binsCount) + 1..<binsCount)) {
             assertEquals(19, histogram.bins[i].border.to - histogram.bins[i].border.from + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { it.border.intBorderLength() })
+        assertEquals(153, histogram.bins.sumOf { it.border.borderLength() })
     }
 }

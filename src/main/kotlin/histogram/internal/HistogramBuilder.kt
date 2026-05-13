@@ -177,4 +177,7 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
 @Serializable
 data class Border<S : Comparable<S>>(val from: S, val to: S)
 
-fun Border<Int>.intBorderLength(): Int = abs(this.to - this.from + 1)
+fun Border<Int>.borderLength(): Int = abs(this.to - this.from + 1)
+fun Border<Long>.borderLength(): Long = abs(this.to - this.from + 1)
+fun Border<Float>.borderLength(): Float = abs(this.to - this.from + 1)
+fun Border<Double>.borderLength(): Double = abs(this.to - this.from + 1)

@@ -84,7 +84,7 @@ class IntHistogramBuilderTest {
         )
         val minStep = 1
         val type = HistogramSourceTypesEnum.INT
-        val configuration = HistogramConfiguration(border, type, minStep)
+        val configuration = HistogramConfiguration(histogramBorder = border, sourceType = type, minStep = minStep)
         val histogram = IntHistogramBuilder().initHistogram(configuration)
         val binsCount = 8 //calculated manually by formula from [org.gurikin.histogram.num_histogram.IntHistogramBuilder.calcBinsCount]
         assertEquals(binsCount, histogram.bins.size)

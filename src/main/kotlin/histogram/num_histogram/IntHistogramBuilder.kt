@@ -53,7 +53,7 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
     private fun Int.addCorrectionToBin(): Int = if (this == 0) 0 else 1
 
     override fun initHistogram(histogramConfiguration: HistogramConfiguration<Int>): Histogram<Int> {
-        val border = histogramConfiguration.histogramBorder
+        val border = histogramConfiguration.histogramBorder!!
         val binsCount = histogramConfiguration.calcBinsCount()
         return createHistogram(border, binsCount)
     }

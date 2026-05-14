@@ -1,5 +1,6 @@
 package org.gurikin.histogram.internal
 
+import java.util.*
 import kotlin.math.log2
 import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
@@ -9,9 +10,10 @@ import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 
 @Serializable
 class HistogramConfiguration<S : Comparable<S>>(
-    val histogramBorder: Border<S>,
     val sourceType: HistogramSourceTypesEnum,
-    val minStep: S,
+    val histogramBorder: Border<S>? = null,
+    val minStep: S?,
+    val valueList: List<S>? = null,
 )
 
 /**
@@ -21,31 +23,54 @@ class HistogramConfiguration<S : Comparable<S>>(
  *
  * @return
  */
-@Suppress("UNCHECKED_CAST")
 fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
-    val stepCount: Double = when (this.sourceType) {
+    val stepCount: Double = this.getBorderLength() / getMinStep()
+    return (1 + log2(stepCount)).toInt()
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <S : Comparable<S>> HistogramConfiguration<S>.getBorderLength(): Double {
+    val borderLength = when (this.sourceType) {
         INT -> {
-            val border = (this.histogramBorder as Border<Int>).borderLength()
-            val step = this.minStep as Int
-            border.toDouble() / step.toDouble()
+            (this.histogramBorder as Border<Int>).borderLength()
         }
+
         LONG -> {
-            val border = (this.histogramBorder as Border<Long>).borderLength()
-            val step = this.minStep as Long
-            border.toDouble() / step.toDouble()
+            (this.histogramBorder as Border<Long>).borderLength()
         }
+
         FLOAT -> {
-            val border = (this.histogramBorder as Border<Float>).borderLength()
-            val step = this.minStep as Float
-            border.toDouble() / step.toDouble()
+            (this.histogramBorder as Border<Float>).borderLength()
         }
+
         DOUBLE -> {
-            val border = (this.histogramBorder as Border<Double>).borderLength()
-            val step = this.minStep as Double
-            border / step
+            (this.histogramBorder as Border<Double>).borderLength()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")
     }
-    return (1 + log2(stepCount)).toInt()
+    return borderLength.toDouble()
+}
+
+private fun <S : Comparable<S>> HistogramConfiguration<S>.getMinStep(): Double {
+    val step = when (this.sourceType) {
+        INT -> {
+            this.minStep as Int
+        }
+
+        LONG -> {
+            this.minStep as Long
+        }
+
+        FLOAT -> {
+            this.minStep as Float
+        }
+
+        DOUBLE -> {
+            this.minStep as Double
+        }
+
+        else -> throw UnsupportedOperationException("Unknown type of histogram source")
+    }
+    return step.toDouble()
 }

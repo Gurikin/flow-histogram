@@ -1,56 +1,72 @@
 package org.gurikin.histogram.internal
 
-abstract class HistogramSourceData<S>(open val value: S) : Comparable<S> {
-    abstract operator fun plus(some: S): HistogramSourceData<S>
-    abstract operator fun minus(some: S): HistogramSourceData<S>
-    abstract operator fun times(some: S): HistogramSourceData<S>
-    abstract operator fun div(some: S): HistogramSourceData<S>
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class HistogramSourceData<S : Comparable<S>> : Comparable<S> {
+    abstract val value: S
+
+    abstract operator fun plus(other: S): HistogramSourceData<S>
+    abstract operator fun minus(other: S): HistogramSourceData<S>
+    abstract operator fun times(other: S): HistogramSourceData<S>
+    abstract operator fun div(other: S): HistogramSourceData<S>
+    abstract operator fun rem(other: S): HistogramSourceData<S>
+    override fun compareTo(other: S): Int = value.compareTo(other)
 }
 
-data class IntHistogramSourceData(override val value: Int) : HistogramSourceData<Int>(value) {
-    override fun plus(some: Int): HistogramSourceData<Int> = IntHistogramSourceData(value + some)
+@Serializable
+@SerialName("Int")
+data class IntHistogramSourceData(override val value: Int) : HistogramSourceData<Int>() {
+    override fun plus(other: Int): HistogramSourceData<Int> = IntHistogramSourceData(value + other)
 
-    override fun minus(some: Int): HistogramSourceData<Int> = IntHistogramSourceData(value - some)
+    override fun minus(other: Int): HistogramSourceData<Int> = IntHistogramSourceData(value - other)
 
-    override fun times(some: Int): HistogramSourceData<Int> = IntHistogramSourceData(value * some)
+    override fun times(other: Int): HistogramSourceData<Int> = IntHistogramSourceData(value * other)
 
-    override fun div(some: Int): HistogramSourceData<Int> = IntHistogramSourceData(value / some)
+    override fun div(other: Int): HistogramSourceData<Int> = IntHistogramSourceData(value / other)
 
-    override fun compareTo(other: Int): Int = value.compareTo(other)
+    override fun rem(other: Int): HistogramSourceData<Int> = IntHistogramSourceData(value % other)
 }
 
-data class LongHistogramSourceData(override val value: Long) : HistogramSourceData<Long>(value) {
-    override fun plus(some: Long): HistogramSourceData<Long> = LongHistogramSourceData(value + some)
+@Serializable
+@SerialName("Long")
+data class LongHistogramSourceData(override val value: Long) : HistogramSourceData<Long>() {
+    override fun plus(other: Long): HistogramSourceData<Long> = LongHistogramSourceData(value + other)
 
-    override fun minus(some: Long): HistogramSourceData<Long> = LongHistogramSourceData(value - some)
+    override fun minus(other: Long): HistogramSourceData<Long> = LongHistogramSourceData(value - other)
 
-    override fun times(some: Long): HistogramSourceData<Long> = LongHistogramSourceData(value * some)
+    override fun times(other: Long): HistogramSourceData<Long> = LongHistogramSourceData(value * other)
 
-    override fun div(some: Long): HistogramSourceData<Long> = LongHistogramSourceData(value / some)
+    override fun div(other: Long): HistogramSourceData<Long> = LongHistogramSourceData(value / other)
 
-    override fun compareTo(other: Long): Int = value.compareTo(other)
+    override fun rem(other: Long): HistogramSourceData<Long> = LongHistogramSourceData(value % other)
 }
 
-data class FloatHistogramSourceData(override val value: Float) : HistogramSourceData<Float>(value) {
-    override fun plus(some: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value + some)
+@Serializable
+@SerialName("Float")
+data class FloatHistogramSourceData(override val value: Float) : HistogramSourceData<Float>() {
+    override fun plus(other: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value + other)
 
-    override fun minus(some: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value - some)
+    override fun minus(other: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value - other)
 
-    override fun times(some: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value * some)
+    override fun times(other: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value * other)
 
-    override fun div(some: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value / some)
+    override fun div(other: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value / other)
 
-    override fun compareTo(other: Float): Int = value.compareTo(other)
+    override fun rem(other: Float): HistogramSourceData<Float> = FloatHistogramSourceData(value % other)
 }
 
-data class DoubleHistogramSourceData(override val value: Double) : HistogramSourceData<Double>(value) {
-    override fun plus(some: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value + some)
+@Serializable
+@SerialName("Double")
+data class DoubleHistogramSourceData(override val value: Double) : HistogramSourceData<Double>() {
+    override fun plus(other: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value + other)
 
-    override fun minus(some: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value - some)
+    override fun minus(other: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value - other)
 
-    override fun times(some: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value * some)
+    override fun times(other: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value * other)
 
-    override fun div(some: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value / some)
+    override fun div(other: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value / other)
 
-    override fun compareTo(other: Double): Int = value.compareTo(other)
+    override fun rem(other: Double): HistogramSourceData<Double> = DoubleHistogramSourceData(value % other)
 }

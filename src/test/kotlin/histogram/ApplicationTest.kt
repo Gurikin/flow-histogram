@@ -22,6 +22,8 @@ import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.HistogramSourceData
+import org.gurikin.histogram.internal.IntHistogramSourceData
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -35,10 +37,14 @@ class ApplicationTest {
             val chunks = TreeSet<Chunk<Int>>()
             val step = 100
             val binsCount = 10
-            var border = Border(0, step - 1)
+            var border: Border<HistogramSourceData<Int>> =
+                Border(IntHistogramSourceData(0), IntHistogramSourceData(step - 1))
             (1..10).forEach { histogramNum ->
                 chunks.add(Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId()))
-                border = Border(histogramNum * step, histogramNum * step + step - 1)
+                border = Border(
+                    IntHistogramSourceData(histogramNum * step),
+                    IntHistogramSourceData(histogramNum * step + step - 1)
+                )
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
@@ -91,11 +97,15 @@ class ApplicationTest {
             val chunks = TreeSet<Chunk<Int>>()
             val step = 100
             val binsCount = 10
-            var border = Border(0, step - 1)
+            var border: Border<HistogramSourceData<Int>> =
+                Border(IntHistogramSourceData(0), IntHistogramSourceData(step - 1))
             (0..9).forEach { histogramNum ->
                 val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
                 chunks.add(chunk)
-                border = Border(chunk.histogram.bins.last().border.to + 1, chunk.histogram.bins.last().border.to + step)
+                border = Border(
+                    IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + 1),
+                    IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + step)
+                )
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
@@ -115,7 +125,10 @@ class ApplicationTest {
 
 
             this.launch {
-                val globalBorder = Border(0, chunks.last().histogram.bins.last().border.to)
+                val globalBorder: Border<HistogramSourceData<Int>> = Border(
+                    IntHistogramSourceData(0),
+                    IntHistogramSourceData(chunks.last().histogram.bins.last().border.to.value)
+                )
                 val histogram = histogramBuilder.initHistogram(globalBorder, 10)
                 val histogrammator = DefaultHistogrammator(
                     histogram = histogram,
@@ -157,11 +170,15 @@ class ApplicationTest {
             val chunks = TreeSet<Chunk<Int>>()
             val step = 10
             val binsCount = 10
-            var border = Border(0, step - 1)
+            var border: Border<HistogramSourceData<Int>> =
+                Border(IntHistogramSourceData(0), IntHistogramSourceData(step - 1))
             (0..9).forEach { histogramNum ->
                 val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
                 chunks.add(chunk)
-                border = Border(chunk.histogram.bins.last().border.to + 1, chunk.histogram.bins.last().border.to + step)
+                border = Border(
+                    IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + 1),
+                    IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + step)
+                )
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
@@ -177,7 +194,10 @@ class ApplicationTest {
             aggregateChunk(aggregator = chunkAggregator)
 
             this.launch {
-                val globalBorder = Border(0, chunks.last().histogram.bins.last().border.to)
+                val globalBorder: Border<HistogramSourceData<Int>> = Border(
+                    IntHistogramSourceData(0),
+                    IntHistogramSourceData(chunks.last().histogram.bins.last().border.to.value)
+                )
                 val histogram = histogramBuilder.initHistogram(globalBorder, 6)
                 val histogrammator = DefaultHistogrammator(
                     histogram = histogram,

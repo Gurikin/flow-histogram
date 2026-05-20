@@ -1,6 +1,5 @@
 package org.gurikin.histogram.internal
 
-import java.util.*
 import kotlin.math.log2
 import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
@@ -11,7 +10,7 @@ import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 @Serializable
 class HistogramConfiguration<S : Comparable<S>>(
     val sourceType: HistogramSourceTypesEnum,
-    val histogramBorder: Border<S>? = null,
+    val histogramBorder: Border<HistogramSourceData<S>>? = null,
     val minStep: S?,
     val valueList: List<S>? = null,
 )
@@ -24,32 +23,31 @@ class HistogramConfiguration<S : Comparable<S>>(
  * @return
  */
 fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
-    val stepCount: Double = this.getBorderLength() / getMinStep()
+    val stepCount: Double = this.getBorderLength() / this.getMinStep()
     return (1 + log2(stepCount)).toInt()
 }
 
 @Suppress("UNCHECKED_CAST")
 private fun <S : Comparable<S>> HistogramConfiguration<S>.getBorderLength(): Double {
-    val borderLength = when (this.sourceType) {
+    return when (this.sourceType) {
         INT -> {
-            (this.histogramBorder as Border<Int>).borderLength()
+            (this.histogramBorder as Border<HistogramSourceData<Int>>).borderIntLenght()
         }
 
         LONG -> {
-            (this.histogramBorder as Border<Long>).borderLength()
+            (this.histogramBorder as Border<HistogramSourceData<Long>>).borderLongLenght()
         }
 
         FLOAT -> {
-            (this.histogramBorder as Border<Float>).borderLength()
+            (this.histogramBorder as Border<HistogramSourceData<Float>>).borderFloatLenght()
         }
 
         DOUBLE -> {
-            (this.histogramBorder as Border<Double>).borderLength()
+            (this.histogramBorder as Border<HistogramSourceData<Double>>).borderDoubleLenght()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")
-    }
-    return borderLength.toDouble()
+    }.toDouble()
 }
 
 private fun <S : Comparable<S>> HistogramConfiguration<S>.getMinStep(): Double {

@@ -11,6 +11,7 @@ import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkQueue
 import org.gurikin.histogram.internal.ChunkStorage
 import org.gurikin.histogram.internal.Histogram
+import org.gurikin.histogram.internal.HistogramSourceData
 import org.gurikin.histogram.internal.binInBorder
 import org.gurikin.histogram.internal.binIsCrossingBorder
 import org.gurikin.histogram.internal.chunkInBorder

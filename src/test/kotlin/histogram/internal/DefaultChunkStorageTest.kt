@@ -10,6 +10,8 @@ import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
 import org.gurikin.histogram.internal.DefaultChunkStorage
+import org.gurikin.histogram.internal.HistogramSourceData
+import org.gurikin.histogram.internal.IntHistogramSourceData
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.Before
 
@@ -21,7 +23,8 @@ class DefaultChunkStorageTest {
     @Before
     fun setUp() {
         val builder = IntHistogramBuilder()
-        val histogram = builder.initHistogram(Border(0, 100), 10)
+        val border: Border<HistogramSourceData<Int>> = Border(IntHistogramSourceData(0), IntHistogramSourceData(100))
+        val histogram = builder.initHistogram(border, 10)
         chunk = Chunk(histogram, ChunkId())
     }
 

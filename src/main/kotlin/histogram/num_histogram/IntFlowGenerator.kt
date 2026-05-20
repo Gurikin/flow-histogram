@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import org.gurikin.histogram.SourceFlowGenerator
-import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.IntHistogramSourceData
 
 class IntFlowGenerator(
     private val range: IntRange,
@@ -25,9 +25,9 @@ class IntFlowGenerator(
                 if (isGaussian) {
                     val x = Random.nextInt(range)
                     val gausX: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
-                    emit(Frame((gausX * messagesCount).toInt()))
+                    emit(IntHistogramSourceData((gausX * messagesCount).toInt()))
                 } else {
-                    emit(Frame(Random.nextInt(range)))
+                    emit(IntHistogramSourceData(Random.nextInt(range)))
                 }
 
             }

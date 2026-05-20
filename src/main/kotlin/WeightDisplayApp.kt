@@ -16,11 +16,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Border
@@ -30,10 +28,11 @@ import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
+import org.gurikin.histogram.internal.HistogramSourceData
+import org.gurikin.histogram.internal.IntHistogramSourceData
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.gurikin.utils.watchDir
-import kotlin.io.path.absolutePathString
 
 class WeightDisplayApp : Application() {
 
@@ -68,26 +67,26 @@ class WeightDisplayApp : Application() {
     }
 
     private fun updateDisplay(filePath: String, root: HBox) {
-            try {
-                val file = File(filePath)
-                if (!file.exists()) {
-                    println("File not found: $filePath")
-                    return
-                }
-                val content = file.readText()
-                val rootData = json.decodeFromString<Histogram<Int>>(content)
-                val weights = rootData.bins.map { it.weight }
-
-                if (weights.isNotEmpty()) {
-                    Platform.runLater {
-                        updateUI(weights, root)
-                    }
-                } else {
-                    println("No weights found in bins")
-                }
-            } catch (e: Exception) {
-                println("Error reading/parsing file: ${e.message}")
+        try {
+            val file = File(filePath)
+            if (!file.exists()) {
+                println("File not found: $filePath")
+                return
             }
+            val content = file.readText()
+            val rootData = json.decodeFromString<Histogram<Int>>(content)
+            val weights = rootData.bins.map { it.weight }
+
+            if (weights.isNotEmpty()) {
+                Platform.runLater {
+                    updateUI(weights, root)
+                }
+            } else {
+                println("No weights found in bins")
+            }
+        } catch (e: Exception) {
+            println("Error reading/parsing file: ${e.message}")
+        }
     }
 
     private fun updateUI(weights: List<Double>, root: HBox) {
@@ -144,11 +143,14 @@ fun launchHistogrammator() = runBlocking {
     val chunks = TreeSet<Chunk<Int>>()
     val step = 100
     val binsCount = 10
-    var border = Border(0, step - 1)
-    (0..9).forEach { histogramNum ->
-        val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
+    var border: Border<HistogramSourceData<Int>> = Border(IntHistogramSourceData(0), IntHistogramSourceData(step - 1))
+    (0..9).forEach { _ ->
+        val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, binsCount), chunkId = ChunkId())
         chunks.add(chunk)
-        border = Border(chunk.histogram.bins.last().border.to + 1, chunk.histogram.bins.last().border.to + step)
+        border = Border(
+            IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + 1),
+            IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + step)
+        )
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
@@ -168,7 +170,8 @@ fun launchHistogrammator() = runBlocking {
 
 
     this.launch {
-        val globalBorder = Border(0, chunks.last().histogram.bins.last().border.to)
+        val globalBorder: Border<HistogramSourceData<Int>> =
+            Border(IntHistogramSourceData(0), IntHistogramSourceData(chunks.last().histogram.bins.last().border.to.value))
         val histogram = histogramBuilder.initHistogram(globalBorder, 10)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,

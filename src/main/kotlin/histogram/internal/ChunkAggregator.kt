@@ -35,8 +35,9 @@ data class Chunk<S : Comparable<S>>(
     val histogram: Histogram<S>,
     val chunkId: ChunkId = ChunkId()
 ) : Comparable<Chunk<S>> {
+
     override fun compareTo(other: Chunk<S>): Int =
-        this.histogram.bins[0].border.from.compareTo(other.histogram.bins[0].border.from)
+        this.histogram.bins[0].border.from.compareTo(other.histogram.bins[0].border.from.value)
 
     fun copy(): Chunk<S> = Chunk(
         histogram = this.histogram.copy(),
@@ -52,7 +53,7 @@ data class ChunkId(val id: UUID = UUID.randomUUID())
  * Try to use it whith all types you need.
  */
 class DefaultChunkAggregator<S : Comparable<S>>(
-    private val framesFlow: Flow<Frame<S>?>,
+    private val framesFlow: Flow<HistogramSourceData<S>?>,
     private val chunks: SortedSet<Chunk<S>>,
     private val chunkStorage: ChunkStorage<S>,
     private val chunkQueue: ChunkQueue,

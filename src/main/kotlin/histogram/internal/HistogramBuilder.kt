@@ -1,12 +1,12 @@
 package org.gurikin.histogram.internal
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -25,7 +25,7 @@ interface HistogramBuilder<S : Comparable<S>> {
      * @param binsCount histogram bins count
      * @return
      */
-    fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
+    fun initHistogram(border: Border<HistogramSourceData<S>>, binsCount: Int): Histogram<S>
 
     /**
      * Init a histogram with define binsCount by Sturges formula
@@ -76,12 +76,12 @@ class Histogram<S : Comparable<S>>(
     }
 }
 
-suspend fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
+fun <S : Comparable<S>> Histogram<S>.add(value: HistogramSourceData<S>) {
     // TODO replace with binary search
     for (bin in this.bins) {
         if (bin.frameInBorder(value)) {
             incrementFrameSum(1)
-            bin.addFrame(value)
+            bin.addFrame()
             break
         }
     }
@@ -115,7 +115,7 @@ fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
 class Bin<S : Comparable<S>>(
-    val border: Border<S>,
+    val border: Border<HistogramSourceData<S>>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
     @Transient
@@ -148,10 +148,10 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
-fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
+fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: HistogramSourceData<S>): Boolean =
     (this.border.from <= frame.value && this.border.to >= frame.value)
 
-fun <S : Comparable<S>> Bin<S>.addFrame(frame: Frame<S>) {
+fun <S : Comparable<S>> Bin<S>.addFrame() {
     this.incrementFrameSum(1)
 }
 
@@ -160,24 +160,29 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from >= this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
+    (chunk.histogram.bins.first().border.from >= this.border.from.value && chunk.histogram.bins.last().border.to <= this.border.to.value)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.to && chunk.histogram.bins.last().border.to > this.border.to)
+    (chunk.histogram.bins.first().border.from < this.border.to.value && chunk.histogram.bins.last().border.to > this.border.to.value)
 
 fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.from && chunk.histogram.bins.last().border.to > this.border.from)
+    (chunk.histogram.bins.first().border.from < this.border.from.value && chunk.histogram.bins.last().border.to > this.border.from.value)
 
 fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from >= this.border.from && otherBin.border.to <= this.border.to)
+    (otherBin.border.from >= this.border.from.value && otherBin.border.to <= this.border.to.value)
 
 fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
+    (otherBin.border.from < this.border.from.value && otherBin.border.to > this.border.from.value) || (otherBin.border.from < this.border.to.value && otherBin.border.to > this.border.to.value)
 
 @Serializable
-data class Border<S : Comparable<S>>(val from: S, val to: S)
+data class Border<S>(val from: S, val to: S)
 
-fun Border<Int>.borderLength(): Int = abs(this.to - this.from + 1)
-fun Border<Long>.borderLength(): Long = abs(this.to - this.from + 1)
-fun Border<Float>.borderLength(): Float = abs(this.to - this.from + 1)
-fun Border<Double>.borderLength(): Double = abs(this.to - this.from + 1)
+fun Border<HistogramSourceData<Int>>.borderIntLenght(): Int = abs(this.to.value - this.from.value + 1)
+fun Border<HistogramSourceData<Long>>.borderLongLenght(): Long = abs(this.to.value - this.from.value + 1)
+fun Border<HistogramSourceData<Float>>.borderFloatLenght(): Float = abs(this.to.value - this.from.value + 1)
+fun Border<HistogramSourceData<Double>>.borderDoubleLenght(): Double = abs(this.to.value - this.from.value + 1)
+
+//fun Border<Int>.borderLength(): Int = abs(this.to - this.from + 1)
+//fun Border<Long>.borderLength(): Long = abs(this.to - this.from + 1)
+//fun Border<Float>.borderLength(): Float = abs(this.to - this.from + 1)
+//fun Border<Double>.borderLength(): Double = abs(this.to - this.from + 1)

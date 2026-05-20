@@ -53,7 +53,7 @@ data class ChunkId(val id: UUID = UUID.randomUUID())
  * Try to use it whith all types you need.
  */
 class DefaultChunkAggregator<S : Comparable<S>>(
-    private val framesFlow: Flow<HistogramSourceData<S>?>,
+    private val framesFlow: Flow<Frame<S>?>,
     private val chunks: SortedSet<Chunk<S>>,
     private val chunkStorage: ChunkStorage<S>,
     private val chunkQueue: ChunkQueue,

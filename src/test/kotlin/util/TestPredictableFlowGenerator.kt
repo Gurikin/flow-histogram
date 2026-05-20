@@ -6,8 +6,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.gurikin.histogram.SourceFlowGenerator
-import org.gurikin.histogram.internal.HistogramSourceData
-import org.gurikin.histogram.internal.IntHistogramSourceData
+import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.IntFrame
 
 /**
  * Test flow generator with predictable weights of each bin.
@@ -22,7 +22,7 @@ import org.gurikin.histogram.internal.IntHistogramSourceData
  *  Generate 1000 messages with predictable separation
  */
 class TestPredictableFlowGenerator(private val scope: CoroutineScope) : SourceFlowGenerator<Int> {
-    override fun flowData(): Flow<HistogramSourceData<Int>?> = channelFlow {
+    override fun flowData(): Flow<Frame<Int>?> = channelFlow {
         val messagesCount: Int = 100
         val binPercentage = listOf(0.05, 0.07, 0.56, 0.22, 0.08, 0.02)
         var from = 0
@@ -35,16 +35,16 @@ class TestPredictableFlowGenerator(private val scope: CoroutineScope) : SourceFl
         }
     }
 
-    private fun getListToEmit(from: Int, to: Int, binIndex: Int): List<HistogramSourceData<Int>> {
-        val result = mutableListOf<HistogramSourceData<Int>>()
+    private fun getListToEmit(from: Int, to: Int, binIndex: Int): List<Frame<Int>> {
+        val result = mutableListOf<Frame<Int>>()
         repeat(to - from) {
             when (binIndex) {
-                0 -> result.add(IntHistogramSourceData(0))
-                1 -> result.add(IntHistogramSourceData(8))
-                2 -> result.add(IntHistogramSourceData(30))
-                3 -> result.add(IntHistogramSourceData(52))
-                4 -> result.add(IntHistogramSourceData(70))
-                5 -> result.add(IntHistogramSourceData(98))
+                0 -> result.add(IntFrame(0))
+                1 -> result.add(IntFrame(8))
+                2 -> result.add(IntFrame(30))
+                3 -> result.add(IntFrame(52))
+                4 -> result.add(IntFrame(70))
+                5 -> result.add(IntFrame(98))
             }
 
         }

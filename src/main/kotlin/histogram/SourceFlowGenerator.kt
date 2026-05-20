@@ -2,7 +2,6 @@ package org.gurikin.histogram
 
 import kotlinx.coroutines.flow.Flow
 import org.gurikin.histogram.internal.Frame
-import org.gurikin.histogram.internal.HistogramSourceData
 
 /**
  * API for generation of a flow data
@@ -12,5 +11,5 @@ import org.gurikin.histogram.internal.HistogramSourceData
  * Moved to the external API for have possible implement users types of source data flow
  */
 interface SourceFlowGenerator<S: Comparable<S>> {
-    fun flowData(): Flow<HistogramSourceData<S>?>
+    fun flowData(): Flow<Frame<S>?>
 }

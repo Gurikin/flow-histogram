@@ -5,9 +5,9 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.HistogramSourceData
+import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
-import org.gurikin.histogram.internal.IntHistogramSourceData
+import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.add
 import org.gurikin.histogram.internal.borderIntLenght
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
@@ -17,9 +17,9 @@ class IntHistogramBuilderTest {
     @Test
     @DisplayName("Test init histogram with manually defined bins count")
     fun initManuallyHistogram() {
-        val border: Border<HistogramSourceData<Int>> = Border(
-            from = IntHistogramSourceData(0),
-            to = IntHistogramSourceData(152)
+        val border: Border<Frame<Int>> = Border(
+            from = IntFrame(0),
+            to = IntFrame(152)
         )
         val binsCount = 14
         val histogram = IntHistogramBuilder().initHistogram(border, binsCount)
@@ -30,22 +30,22 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value % binsCount) + 1..<binsCount)) {
             assertEquals(10, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<HistogramSourceData<Int>>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Frame<Int>>).borderIntLenght() })
     }
 
     @Test
     fun simpleAdd() {
         runTest {
-            val border: Border<HistogramSourceData<Int>> =
-                Border(IntHistogramSourceData(0), IntHistogramSourceData(100))
+            val border: Border<Frame<Int>> =
+                Border(IntFrame(0), IntFrame(100))
             val binsCount = 10
             val histogramBuilder = IntHistogramBuilder()
             val histogram = histogramBuilder.initHistogram(border, binsCount)
             for (i in 0..<100) {
                 when (i) {
-                    in (0..49) -> histogram.add(IntHistogramSourceData(49))
-                    in (50..89) -> histogram.add(IntHistogramSourceData(89))
-                    else -> histogram.add(IntHistogramSourceData(9))
+                    in (0..49) -> histogram.add(IntFrame(49))
+                    in (50..89) -> histogram.add(IntFrame(89))
+                    else -> histogram.add(IntFrame(9))
                 }
             }
             assertEquals(100, histogram.getFrameSum())
@@ -58,16 +58,16 @@ class IntHistogramBuilderTest {
     @Test
     fun addWithReminderOfDivision() {
         runTest {
-            val border: Border<HistogramSourceData<Int>> =
-                Border(IntHistogramSourceData(0), IntHistogramSourceData(102))
+            val border: Border<Frame<Int>> =
+                Border(IntFrame(0), IntFrame(102))
             val binsCount = 10
             val histogramBuilder = IntHistogramBuilder()
             val histogram = histogramBuilder.initHistogram(border, binsCount)
             for (i in 0..<100) {
                 when (i) {
-                    in (0..49) -> histogram.add(IntHistogramSourceData(10))
-                    in (50..89) -> histogram.add(IntHistogramSourceData(21))
-                    else -> histogram.add(IntHistogramSourceData(22))
+                    in (0..49) -> histogram.add(IntFrame(10))
+                    in (50..89) -> histogram.add(IntFrame(21))
+                    else -> histogram.add(IntFrame(22))
                 }
             }
             assertEquals(100, histogram.getFrameSum())
@@ -80,8 +80,8 @@ class IntHistogramBuilderTest {
     @Test
     @DisplayName("Test init histogram by configuration with calculation of bins count")
     fun initHistogramByConfiguration() {
-        val border: Border<HistogramSourceData<Int>> =
-            Border(IntHistogramSourceData(0), IntHistogramSourceData(152))
+        val border: Border<Frame<Int>> =
+            Border(IntFrame(0), IntFrame(152))
         val minStep = 1
         val type = HistogramSourceTypesEnum.INT
         val configuration = HistogramConfiguration(histogramBorder = border, sourceType = type, minStep = minStep)
@@ -95,6 +95,6 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value % binsCount) + 1..<binsCount)) {
             assertEquals(19, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<HistogramSourceData<Int>>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Frame<Int>>).borderIntLenght() })
     }
 }

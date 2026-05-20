@@ -25,7 +25,7 @@ interface HistogramBuilder<S : Comparable<S>> {
      * @param binsCount histogram bins count
      * @return
      */
-    fun initHistogram(border: Border<HistogramSourceData<S>>, binsCount: Int): Histogram<S>
+    fun initHistogram(border: Border<Frame<S>>, binsCount: Int): Histogram<S>
 
     /**
      * Init a histogram with define binsCount by Sturges formula
@@ -76,7 +76,7 @@ class Histogram<S : Comparable<S>>(
     }
 }
 
-fun <S : Comparable<S>> Histogram<S>.add(value: HistogramSourceData<S>) {
+fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
     // TODO replace with binary search
     for (bin in this.bins) {
         if (bin.frameInBorder(value)) {
@@ -115,7 +115,7 @@ fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
 class Bin<S : Comparable<S>>(
-    val border: Border<HistogramSourceData<S>>,
+    val border: Border<Frame<S>>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
     @Transient
@@ -148,7 +148,7 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
-fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: HistogramSourceData<S>): Boolean =
+fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
     (this.border.from <= frame.value && this.border.to >= frame.value)
 
 fun <S : Comparable<S>> Bin<S>.addFrame() {
@@ -177,10 +177,10 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
 @Serializable
 data class Border<S>(val from: S, val to: S)
 
-fun Border<HistogramSourceData<Int>>.borderIntLenght(): Int = abs(this.to.value - this.from.value + 1)
-fun Border<HistogramSourceData<Long>>.borderLongLenght(): Long = abs(this.to.value - this.from.value + 1)
-fun Border<HistogramSourceData<Float>>.borderFloatLenght(): Float = abs(this.to.value - this.from.value + 1)
-fun Border<HistogramSourceData<Double>>.borderDoubleLenght(): Double = abs(this.to.value - this.from.value + 1)
+fun Border<Frame<Int>>.borderIntLenght(): Int = abs(this.to.value - this.from.value + 1)
+fun Border<Frame<Long>>.borderLongLenght(): Long = abs(this.to.value - this.from.value + 1)
+fun Border<Frame<Float>>.borderFloatLenght(): Float = abs(this.to.value - this.from.value + 1)
+fun Border<Frame<Double>>.borderDoubleLenght(): Double = abs(this.to.value - this.from.value + 1)
 
 //fun Border<Int>.borderLength(): Int = abs(this.to - this.from + 1)
 //fun Border<Long>.borderLength(): Long = abs(this.to - this.from + 1)

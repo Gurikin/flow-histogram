@@ -10,7 +10,7 @@ import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 @Serializable
 class HistogramConfiguration<S : Comparable<S>>(
     val sourceType: HistogramSourceTypesEnum,
-    val histogramBorder: Border<HistogramSourceData<S>>? = null,
+    val histogramBorder: Border<Frame<S>>? = null,
     val minStep: S?,
     val valueList: List<S>? = null,
 )
@@ -31,19 +31,19 @@ fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
 private fun <S : Comparable<S>> HistogramConfiguration<S>.getBorderLength(): Double {
     return when (this.sourceType) {
         INT -> {
-            (this.histogramBorder as Border<HistogramSourceData<Int>>).borderIntLenght()
+            (this.histogramBorder as Border<Frame<Int>>).borderIntLenght()
         }
 
         LONG -> {
-            (this.histogramBorder as Border<HistogramSourceData<Long>>).borderLongLenght()
+            (this.histogramBorder as Border<Frame<Long>>).borderLongLenght()
         }
 
         FLOAT -> {
-            (this.histogramBorder as Border<HistogramSourceData<Float>>).borderFloatLenght()
+            (this.histogramBorder as Border<Frame<Float>>).borderFloatLenght()
         }
 
         DOUBLE -> {
-            (this.histogramBorder as Border<HistogramSourceData<Double>>).borderDoubleLenght()
+            (this.histogramBorder as Border<Frame<Double>>).borderDoubleLenght()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")

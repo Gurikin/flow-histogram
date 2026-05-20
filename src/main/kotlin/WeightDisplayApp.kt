@@ -28,8 +28,8 @@ import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
-import org.gurikin.histogram.internal.HistogramSourceData
-import org.gurikin.histogram.internal.IntHistogramSourceData
+import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.gurikin.utils.watchDir
@@ -143,13 +143,13 @@ fun launchHistogrammator() = runBlocking {
     val chunks = TreeSet<Chunk<Int>>()
     val step = 100
     val binsCount = 10
-    var border: Border<HistogramSourceData<Int>> = Border(IntHistogramSourceData(0), IntHistogramSourceData(step - 1))
+    var border: Border<Frame<Int>> = Border(IntFrame(0), IntFrame(step - 1))
     (0..9).forEach { _ ->
         val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, binsCount), chunkId = ChunkId())
         chunks.add(chunk)
         border = Border(
-            IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + 1),
-            IntHistogramSourceData(chunk.histogram.bins.last().border.to.value + step)
+            IntFrame(chunk.histogram.bins.last().border.to.value + 1),
+            IntFrame(chunk.histogram.bins.last().border.to.value + step)
         )
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
@@ -170,8 +170,8 @@ fun launchHistogrammator() = runBlocking {
 
 
     this.launch {
-        val globalBorder: Border<HistogramSourceData<Int>> =
-            Border(IntHistogramSourceData(0), IntHistogramSourceData(chunks.last().histogram.bins.last().border.to.value))
+        val globalBorder: Border<Frame<Int>> =
+            Border(IntFrame(0), IntFrame(chunks.last().histogram.bins.last().border.to.value))
         val histogram = histogramBuilder.initHistogram(globalBorder, 10)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,

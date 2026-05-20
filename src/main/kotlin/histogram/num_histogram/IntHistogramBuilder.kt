@@ -7,8 +7,8 @@ import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramBuilder
 import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.HistogramSourceData
-import org.gurikin.histogram.internal.IntHistogramSourceData
+import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.calcBinsCount
 
 /**
@@ -22,21 +22,21 @@ import org.gurikin.histogram.internal.calcBinsCount
 class IntHistogramBuilder : HistogramBuilder<Int> {
 
     override fun initHistogram(
-        border: Border<HistogramSourceData<Int>>,
+        border: Border<Frame<Int>>,
         binsCount: Int
     ): Histogram<Int> {
         return createHistogram(border, binsCount)
     }
 
     private fun createHistogram(
-        border: Border<HistogramSourceData<Int>>,
+        border: Border<Frame<Int>>,
         binsCount: Int
     ): Histogram<Int> {
         var remOfDiv = reminderOfDivision(border, binsCount)
         val interval = abs(border.to.value - remOfDiv - border.from.value + 1)
         val step = interval / binsCount
         val bins: MutableList<Bin<Int>> = mutableListOf()
-        var currBin = Bin(Border(IntHistogramSourceData(border.from.value), IntHistogramSourceData(border.from.value + step - 1)))
+        var currBin = Bin(Border(IntFrame(border.from.value), IntFrame(border.from.value + step - 1)))
         for (i in (0..<binsCount)) {
             val binFrom = currBin.border.from
             val correctionToBin = remOfDiv.addCorrectionToBin()
@@ -50,7 +50,7 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
         return Histogram(bins = bins, totalFrameSum = 0)
     }
 
-    private fun reminderOfDivision(border: Border<HistogramSourceData<Int>>, binsCount: Int): Int =
+    private fun reminderOfDivision(border: Border<Frame<Int>>, binsCount: Int): Int =
         border.let { (it.to.value - it.from.value + 1) % binsCount }
 
     private fun Int.addCorrectionToBin(): Int = if (this == 0) 0 else 1

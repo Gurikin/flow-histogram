@@ -1,5 +1,8 @@
 package org.gurikin.histogram.internal
 
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import kotlin.math.log2
 import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
@@ -15,6 +18,11 @@ class HistogramConfiguration<S : Comparable<S>>(
     val valueList: List<S>? = null,
 )
 
+fun <S : Comparable<S>> HistogramConfiguration<S>.calcChunksCount(): Int {
+    val stepCount = this.getBorderLength() / this.getMinStep()
+    return (this.calcBinsCount() / (this.getMinStep())).toInt()
+}
+
 /**
  * Base formula for calculating histogram bins count $n = 1 + log_2(N)$
  * N - number of all possible elements in histogram's border:
@@ -24,7 +32,7 @@ class HistogramConfiguration<S : Comparable<S>>(
  */
 fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
     val stepCount: Double = this.getBorderLength() / this.getMinStep()
-    return (1 + log2(stepCount)).toInt()
+    return BigDecimal(1 + log2(stepCount)).setScale(0, RoundingMode.HALF_EVEN).toInt()
 }
 
 @Suppress("UNCHECKED_CAST")

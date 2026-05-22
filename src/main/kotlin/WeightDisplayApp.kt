@@ -27,9 +27,12 @@ import org.gurikin.histogram.internal.ChunkId
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
-import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.Frame
+import org.gurikin.histogram.internal.Histogram
+import org.gurikin.histogram.internal.HistogramConfiguration
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum
 import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.generateChunks
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.gurikin.utils.watchDir
@@ -140,18 +143,26 @@ suspend fun main(args: Array<String>) {
 
 fun launchHistogrammator() = runBlocking {
     val histogramBuilder = IntHistogramBuilder()
+    val configuration = HistogramConfiguration(
+        sourceType = HistogramSourceTypesEnum.INT,
+        histogramBorder = Border(IntFrame(0), IntFrame(999)),
+        minStep = 1,
+        valueList = null
+    )
+//    val chunks = TreeSet<Chunk<Int>>()
+//    val step = 100
+//    val binsCount = 10
+//    var border: Border<Frame<Int>> = Border(IntFrame(0), IntFrame(step - 1))
+//    (0..9).forEach { _ ->
+//        val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, binsCount), chunkId = ChunkId())
+//        chunks.add(chunk)
+//        border = Border(
+//            IntFrame(chunk.histogram.bins.last().border.to.value + 1),
+//            IntFrame(chunk.histogram.bins.last().border.to.value + step)
+//        )
+//    }
     val chunks = TreeSet<Chunk<Int>>()
-    val step = 100
-    val binsCount = 10
-    var border: Border<Frame<Int>> = Border(IntFrame(0), IntFrame(step - 1))
-    (0..9).forEach { _ ->
-        val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, binsCount), chunkId = ChunkId())
-        chunks.add(chunk)
-        border = Border(
-            IntFrame(chunk.histogram.bins.last().border.to.value + 1),
-            IntFrame(chunk.histogram.bins.last().border.to.value + step)
-        )
-    }
+    chunks.addAll(configuration.generateChunks(histogramBuilder))
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
     val expectedMessageCnt = 1000

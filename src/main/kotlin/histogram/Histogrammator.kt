@@ -72,7 +72,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
     }
 
     private fun accumulateChunkLeftSide(bin: Bin<S>, chunk: Chunk<S>) {
-        for (chunkBin in chunk.histogram.bins) {
+        for (chunkBin in chunk.histogram.bins.filter { it.getFrameSum() != 0 }) {
             when {
                 bin.binInBorder(chunkBin) || bin.binIsCrossingBorder(chunkBin) -> {
                     bin.incrementFrameSum(chunkBin.getFrameSum())

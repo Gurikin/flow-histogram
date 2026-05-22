@@ -3,6 +3,7 @@ package org.gurikin.histogram.internal
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.util.TreeSet
 import kotlin.math.log2
 import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
@@ -17,6 +18,40 @@ class HistogramConfiguration<S : Comparable<S>>(
     val minStep: S?,
     val valueList: List<S>? = null,
 )
+
+const val CHUNK_BIN_COUNT = 10
+
+fun <S: Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Frame<S> {
+    if (value is Number) {
+        return when (this.sourceType) {
+            HistogramSourceTypesEnum.INT -> IntFrame(value.toInt())
+            HistogramSourceTypesEnum.LONG -> LongFrame(value.toLong())
+            HistogramSourceTypesEnum.FLOAT -> FloatFrame(value.toFloat())
+            HistogramSourceTypesEnum.DOUBLE -> DoubleFrame(value.toDouble())
+            else -> throw UnsupportedOperationException("Unknown type for frame ${value::class}")
+        } as Frame<S>
+    } else {
+        throw UnsupportedOperationException("Unknown type for frame ${value::class}")
+    }
+}
+
+
+fun <S: Comparable<S>> HistogramConfiguration<S>.generateChunks(histogramBuilder: HistogramBuilder<S>): Set<Chunk<S>> {
+    val chunks = TreeSet<Chunk<S>>()
+    val chunksCount = this.calcChunksCount()
+    val borderLenght = this.getBorderLength()
+    val chunkBorderLenght = borderLenght / chunksCount
+    var border: Border<Frame<S>>
+    (0..chunksCount).forEach {
+        border = Border(
+            this.frameFactory(it * chunkBorderLenght),
+            this.frameFactory(it * chunkBorderLenght + chunkBorderLenght - 1)
+        )
+        val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, CHUNK_BIN_COUNT), chunkId = ChunkId())
+        chunks.add(chunk)
+    }
+    return chunks
+}
 
 fun <S : Comparable<S>> HistogramConfiguration<S>.calcChunksCount(): Int {
     val stepCount = this.getBorderLength() / this.getMinStep()

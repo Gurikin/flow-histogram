@@ -149,7 +149,7 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
 )
 
 fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
-    (this.border.from <= frame.value && this.border.to >= frame.value)
+    (this.border.from <= frame && this.border.to >= frame)
 
 fun <S : Comparable<S>> Bin<S>.addFrame() {
     this.incrementFrameSum(1)
@@ -160,19 +160,19 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from >= this.border.from.value && chunk.histogram.bins.last().border.to <= this.border.to.value)
+    (chunk.histogram.bins.first().border.from >= this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.to.value && chunk.histogram.bins.last().border.to > this.border.to.value)
+    (chunk.histogram.bins.first().border.from < this.border.to && chunk.histogram.bins.last().border.to > this.border.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.from.value && chunk.histogram.bins.last().border.to > this.border.from.value)
+    (chunk.histogram.bins.first().border.from < this.border.from && chunk.histogram.bins.last().border.to > this.border.from)
 
 fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from >= this.border.from.value && otherBin.border.to <= this.border.to.value)
+    (otherBin.border.from >= this.border.from && otherBin.border.to <= this.border.to)
 
 fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from < this.border.from.value && otherBin.border.to > this.border.from.value) || (otherBin.border.from < this.border.to.value && otherBin.border.to > this.border.to.value)
+    (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
 
 @Serializable
 data class Border<S>(val from: S, val to: S)

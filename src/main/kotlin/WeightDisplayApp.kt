@@ -149,18 +149,6 @@ fun launchHistogrammator() = runBlocking {
         minStep = 1,
         valueList = null
     )
-//    val chunks = TreeSet<Chunk<Int>>()
-//    val step = 100
-//    val binsCount = 10
-//    var border: Border<Frame<Int>> = Border(IntFrame(0), IntFrame(step - 1))
-//    (0..9).forEach { _ ->
-//        val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, binsCount), chunkId = ChunkId())
-//        chunks.add(chunk)
-//        border = Border(
-//            IntFrame(chunk.histogram.bins.last().border.to.value + 1),
-//            IntFrame(chunk.histogram.bins.last().border.to.value + step)
-//        )
-//    }
     val chunks = TreeSet<Chunk<Int>>()
     chunks.addAll(configuration.generateChunks(histogramBuilder))
     val chunkStorage = DefaultChunkStorage<Int>(this)

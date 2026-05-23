@@ -23,7 +23,7 @@ class DefaultChunkQueueTest {
     @Before
     fun setUp() {
         val builder = IntHistogramBuilder()
-        val border: Border<Frame<Int>> = Border(IntFrame(0), IntFrame(100))
+        val border: Border<Int> = Border(IntFrame(0), IntFrame(100))
         val histogram = builder.initHistogram(border, 10)
         chunk = Chunk(histogram, ChunkId())
     }

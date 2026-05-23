@@ -23,14 +23,13 @@ import kotlinx.serialization.json.Json
 import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
-import org.gurikin.histogram.internal.ChunkId
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramConfiguration
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
+import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.generateChunks
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
@@ -169,8 +168,8 @@ fun launchHistogrammator() = runBlocking {
 
 
     this.launch {
-        val globalBorder: Border<Frame<Int>> =
-            Border(IntFrame(0), IntFrame(chunks.last().histogram.bins.last().border.to.value))
+        val globalBorder: Border<Int> =
+            Border(IntFrame(0), IntFrame(chunks.last().histogram.bins.last().border.to.value()))
         val histogram = histogramBuilder.initHistogram(globalBorder, 10)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,

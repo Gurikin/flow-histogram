@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
+import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.add
 import org.gurikin.histogram.internal.borderIntLenght
@@ -17,26 +17,26 @@ class IntHistogramBuilderTest {
     @Test
     @DisplayName("Test init histogram with manually defined bins count")
     fun initManuallyHistogram() {
-        val border: Border<Frame<Int>> = Border(
+        val border: Border<Int> = Border(
             from = IntFrame(0),
             to = IntFrame(152)
         )
         val binsCount = 14
         val histogram = IntHistogramBuilder().initHistogram(border, binsCount)
         assertEquals(binsCount, histogram.bins.size)
-        for (i in (0..(border.to.value % binsCount))) {
-            assertEquals(11, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
+        for (i in (0..(border.to.value() % binsCount))) {
+            assertEquals(11, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        for (i in ((border.to.value % binsCount) + 1..<binsCount)) {
-            assertEquals(10, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
+        for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
+            assertEquals(10, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Frame<Int>>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Int>).borderIntLenght() })
     }
 
     @Test
     fun simpleAdd() {
         runTest {
-            val border: Border<Frame<Int>> =
+            val border: Border<Int> =
                 Border(IntFrame(0), IntFrame(100))
             val binsCount = 10
             val histogramBuilder = IntHistogramBuilder()
@@ -58,7 +58,7 @@ class IntHistogramBuilderTest {
     @Test
     fun addWithReminderOfDivision() {
         runTest {
-            val border: Border<Frame<Int>> =
+            val border: Border<Int> =
                 Border(IntFrame(0), IntFrame(102))
             val binsCount = 10
             val histogramBuilder = IntHistogramBuilder()
@@ -80,7 +80,7 @@ class IntHistogramBuilderTest {
     @Test
     @DisplayName("Test init histogram by configuration with calculation of bins count")
     fun initHistogramByConfiguration() {
-        val border: Border<Frame<Int>> =
+        val border: Border<Int> =
             Border(IntFrame(0), IntFrame(152))
         val minStep = 1
         val type = HistogramSourceTypesEnum.INT
@@ -89,12 +89,12 @@ class IntHistogramBuilderTest {
         val binsCount =
             8 //calculated manually by formula from [org.gurikin.histogram.num_histogram.IntHistogramBuilder.calcBinsCount]
         assertEquals(binsCount, histogram.bins.size)
-        for (i in (0..(border.to.value % binsCount))) {
-            assertEquals(20, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
+        for (i in (0..(border.to.value() % binsCount))) {
+            assertEquals(20, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        for (i in ((border.to.value % binsCount) + 1..<binsCount)) {
-            assertEquals(19, histogram.bins[i].border.to.value - histogram.bins[i].border.from.value + 1)
+        for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
+            assertEquals(19, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Frame<Int>>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Int>).borderIntLenght() })
     }
 }

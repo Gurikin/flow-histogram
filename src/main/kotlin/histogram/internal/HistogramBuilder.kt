@@ -25,7 +25,7 @@ interface HistogramBuilder<S : Comparable<S>> {
      * @param binsCount histogram bins count
      * @return
      */
-    fun initHistogram(border: Border<Frame<S>>, binsCount: Int): Histogram<S>
+    fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
 
     /**
      * Init a histogram with define binsCount by Sturges formula
@@ -115,7 +115,7 @@ fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
 class Bin<S : Comparable<S>>(
-    val border: Border<Frame<S>>,
+    val border: Border<S>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
     @Transient
@@ -175,14 +175,9 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
     (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
 
 @Serializable
-data class Border<S>(val from: S, val to: S)
+data class Border<S>(val from: Frame<S>, val to: Frame<S>)
 
-fun Border<Frame<Int>>.borderIntLenght(): Int = abs(this.to.value - this.from.value + 1)
-fun Border<Frame<Long>>.borderLongLenght(): Long = abs(this.to.value - this.from.value + 1)
-fun Border<Frame<Float>>.borderFloatLenght(): Float = abs(this.to.value - this.from.value + 1)
-fun Border<Frame<Double>>.borderDoubleLenght(): Double = abs(this.to.value - this.from.value + 1)
-
-//fun Border<Int>.borderLength(): Int = abs(this.to - this.from + 1)
-//fun Border<Long>.borderLength(): Long = abs(this.to - this.from + 1)
-//fun Border<Float>.borderLength(): Float = abs(this.to - this.from + 1)
-//fun Border<Double>.borderLength(): Double = abs(this.to - this.from + 1)
+fun Border<Int>.borderIntLenght(): Int = abs(this.to.value() - this.from.value() + 1)
+fun Border<Long>.borderLongLenght(): Long = abs(this.to.value() - this.from.value() + 1)
+fun Border<Float>.borderFloatLenght(): Float = abs(this.to.value() - this.from.value() + 1)
+fun Border<Double>.borderDoubleLenght(): Double = abs(this.to.value() + 1)

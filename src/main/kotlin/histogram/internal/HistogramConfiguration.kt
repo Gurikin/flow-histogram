@@ -1,9 +1,8 @@
 package org.gurikin.histogram.internal
 
 import java.math.BigDecimal
-import java.math.MathContext
 import java.math.RoundingMode
-import java.util.TreeSet
+import java.util.*
 import kotlin.math.log2
 import kotlinx.serialization.Serializable
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
@@ -14,14 +13,14 @@ import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 @Serializable
 class HistogramConfiguration<S : Comparable<S>>(
     val sourceType: HistogramSourceTypesEnum,
-    val histogramBorder: Border<Frame<S>>? = null,
+    val histogramBorder: Border<S>? = null,
     val minStep: S?,
     val valueList: List<S>? = null,
 )
 
 const val CHUNK_BIN_COUNT = 10
 
-fun <S: Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Frame<S> {
+fun <S : Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Frame<S> {
     if (value is Number) {
         return when (this.sourceType) {
             HistogramSourceTypesEnum.INT -> IntFrame(value.toInt())
@@ -36,12 +35,12 @@ fun <S: Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Frame
 }
 
 
-fun <S: Comparable<S>> HistogramConfiguration<S>.generateChunks(histogramBuilder: HistogramBuilder<S>): Set<Chunk<S>> {
+fun <S : Comparable<S>> HistogramConfiguration<S>.generateChunks(histogramBuilder: HistogramBuilder<S>): Set<Chunk<S>> {
     val chunks = TreeSet<Chunk<S>>()
     val chunksCount = this.calcChunksCount()
     val borderLenght = this.getBorderLength()
     val chunkBorderLenght = borderLenght / chunksCount
-    var border: Border<Frame<S>>
+    var border: Border<S>
     (0..chunksCount).forEach {
         border = Border(
             this.frameFactory(it * chunkBorderLenght),
@@ -74,19 +73,19 @@ fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
 private fun <S : Comparable<S>> HistogramConfiguration<S>.getBorderLength(): Double {
     return when (this.sourceType) {
         INT -> {
-            (this.histogramBorder as Border<Frame<Int>>).borderIntLenght()
+            (this.histogramBorder as Border<Int>).borderIntLenght()
         }
 
         LONG -> {
-            (this.histogramBorder as Border<Frame<Long>>).borderLongLenght()
+            (this.histogramBorder as Border<Long>).borderLongLenght()
         }
 
         FLOAT -> {
-            (this.histogramBorder as Border<Frame<Float>>).borderFloatLenght()
+            (this.histogramBorder as Border<Float>).borderFloatLenght()
         }
 
         DOUBLE -> {
-            (this.histogramBorder as Border<Frame<Double>>).borderDoubleLenght()
+            (this.histogramBorder as Border<Double>).borderDoubleLenght()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")

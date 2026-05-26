@@ -30,7 +30,7 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
             assertEquals(10, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Int>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLenght() })
     }
 
     @Test
@@ -95,6 +95,6 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
             assertEquals(19, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border as Border<Int>).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLenght() })
     }
 }

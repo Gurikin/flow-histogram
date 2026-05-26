@@ -1,5 +1,6 @@
 package org.gurikin.histogram
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -25,6 +26,7 @@ import org.gurikin.histogram.internal.setWeight
  */
 interface Histogrammator<S : Comparable<S>> {
     suspend fun accumulate()
+    suspend fun calcAvg()
 }
 
 @Serializable
@@ -32,7 +34,10 @@ class DefaultHistogrammator<S : Comparable<S>>(
     val histogram: Histogram<S>,
     private val chunkQueue: ChunkQueue,
     private val chunkStorage: ChunkStorage<S>,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val accumulateDelay: Duration = 10.milliseconds,
+    private val refreshBinsDelay: Duration = 100.milliseconds,
+    private val calcAvgDelay: Duration = 2000.milliseconds,
 ) : Histogrammator<S> {
 
     override suspend fun accumulate() {
@@ -49,7 +54,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         else -> refreshBin(bin)
                     }
                 }
-                delay(10.milliseconds)
+                delay(accumulateDelay)
             }
         }
         scope.launch {
@@ -57,7 +62,16 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 for (bin in histogram.bins) {
                     refreshBin(bin)
                 }
-                delay(100.milliseconds)
+                delay(refreshBinsDelay)
+            }
+        }
+    }
+
+    override suspend fun calcAvg() {
+        scope.launch {
+            while (true) {
+                delay(calcAvgDelay)
+                histogram.refreshAvg()
             }
         }
     }

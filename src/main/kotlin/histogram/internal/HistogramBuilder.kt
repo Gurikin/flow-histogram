@@ -54,8 +54,10 @@ interface HistogramBuilder<S : Comparable<S>> {
 class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
+    var average: Double = 0.0,
     @Transient
-    private val _totalFrameSum: AtomicInt = AtomicInt(0)
+    private val _totalFrameSum: AtomicInt = AtomicInt(0),
+    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
 ) {
 
     fun initFrameSum() {
@@ -72,6 +74,44 @@ class Histogram<S : Comparable<S>>(
             totalFrameSum
         } else {
             throw RuntimeException("Histogram TotalFrameSum unsync")
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun refreshAvg() {
+        this.bins.forEach { bin ->
+            val binAvg = when (bin.border.type) {
+                HistogramSourceTypesEnum.INT -> avg(
+                    (bin.border as Border<Int>).from,
+                    bin.border.to,
+                    bin.getFrameSum(),
+                    this.getFrameSum()
+                )
+
+                HistogramSourceTypesEnum.LONG -> avg(
+                    (bin.border as Border<Long>).from,
+                    bin.border.to,
+                    bin.getFrameSum(),
+                    this.getFrameSum()
+                )
+
+                HistogramSourceTypesEnum.FLOAT -> avg(
+                    (bin.border as Border<Float>).from,
+                    bin.border.to,
+                    bin.getFrameSum(),
+                    this.getFrameSum()
+                )
+
+                HistogramSourceTypesEnum.DOUBLE -> avg(
+                    (bin.border as Border<Double>).from,
+                    bin.border.to,
+                    bin.getFrameSum(),
+                    this.getFrameSum()
+                )
+
+                else -> throw UnsupportedOperationException("Unknown type for frame ${bin.border.from::class}")
+            }.toDouble()
+            this.average += binAvg
         }
     }
 }
@@ -96,6 +136,7 @@ fun <S : Comparable<S>> Histogram<S>.clear() {
         it.weight = 0.0
         it.initFrameSum()
     }
+    this.average = 0.0
     this.initFrameSum()
 }
 
@@ -108,7 +149,8 @@ fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
     return Histogram(
         bins = binList,
         totalFrameSum = this.getFrameSum(),
-        _totalFrameSum = AtomicInt(this.getFrameSum())
+        average = this.average,
+        _totalFrameSum = AtomicInt(this.getFrameSum()),
     )
 }
 
@@ -120,6 +162,7 @@ class Bin<S : Comparable<S>>(
     internal var weight: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
+    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
 ) {
 
     fun initFrameSum() {
@@ -175,9 +218,18 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
     (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
 
 @Serializable
-data class Border<S>(val from: Frame<S>, val to: Frame<S>)
+data class Border<S>(
+    val from: Frame<S>,
+    val to: Frame<S>,
+    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT
+)
 
 fun Border<Int>.borderIntLenght(): Int = abs(this.to.value() - this.from.value() + 1)
 fun Border<Long>.borderLongLenght(): Long = abs(this.to.value() - this.from.value() + 1)
 fun Border<Float>.borderFloatLenght(): Float = abs(this.to.value() - this.from.value() + 1)
 fun Border<Double>.borderDoubleLenght(): Double = abs(this.to.value() + 1)
+
+fun Border<Int>.borderIntCenter(): Int = abs(this.to.value() - this.from.value() + 1) / 2
+fun Border<Long>.borderLongCenter(): Long = abs(this.to.value() - this.from.value() + 1) / 2
+fun Border<Float>.borderFloatCenter(): Float = abs(this.to.value() - this.from.value() + 1) / 2.0f
+fun Border<Double>.borderDoubleCenter(): Double = abs(this.to.value() + 1) / 2.0

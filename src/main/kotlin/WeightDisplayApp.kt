@@ -29,7 +29,6 @@ import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramConfiguration
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.generateChunks
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
@@ -49,10 +48,17 @@ class WeightDisplayApp : Application() {
             style = "-fx-padding: 20; -fx-background-color: #2b2b2b;"
         }
 
+        val avgBox = Label("0.0").apply {
+            alignment = Pos.TOP_CENTER
+            style = "-fx-padding: 5; -fx-text-fill: yellow; -fx-font-weight: bold;"
+        }
+
+        root.children.add(avgBox)
+
         // Сначала пустые метки, потом обновим
         labels = emptyList()
-        val scene = Scene(root, 800.0, 200.0)
-        primaryStage.title = "Weight Display"
+        val scene = Scene(root, 1350.0, 600.0)
+        primaryStage.title = "Histogrammator"
         primaryStage.scene = scene
         primaryStage.show()
 
@@ -177,7 +183,10 @@ fun launchHistogrammator() = runBlocking {
             chunkStorage = chunkStorage,
             scope = this
         )
-        launch { histogrammator.accumulate() }
+        launch {
+            histogrammator.accumulate()
+            histogrammator.calcAvg()
+        }
         val filePath = this::class.java.classLoader.getResource("histogram.json")!!.file
         val file = File(filePath)
         if (!file.exists()) {

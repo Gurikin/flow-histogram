@@ -41,6 +41,9 @@ class WeightDisplayApp : Application() {
     private val json = Json { ignoreUnknownKeys = true }
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+    private val minFontSize = 14.0
+    private val maxFontSize = 72.0
+
     override fun start(primaryStage: Stage) {
         // Создаём UI
         val root = HBox(20.0).apply {
@@ -48,12 +51,25 @@ class WeightDisplayApp : Application() {
             style = "-fx-padding: 20; -fx-background-color: #2b2b2b;"
         }
 
-        val avgBox = Label("0.0").apply {
-            alignment = Pos.TOP_CENTER
+        val avgBox = HBox(5.0).apply {
+            alignment = Pos.CENTER_LEFT
             style = "-fx-padding: 5; -fx-text-fill: yellow; -fx-font-weight: bold;"
         }
 
+        val avgLabel = Label("0.0").apply {
+            alignment = Pos.CENTER
+            style = "-fx-padding: 5; -fx-text-fill: yellow; -fx-font-weight: bold; -fx-font-size: ${(minFontSize + maxFontSize)/2}"
+        }
+        avgBox.children.add(avgLabel)
+
+
+        val histogramBox = HBox(5.0).apply {
+            alignment = Pos.CENTER_RIGHT
+            style = "-fx-padding: 5; -fx-background-color: #2b2b2b;"
+        }
+
         root.children.add(avgBox)
+        root.children.add(histogramBox)
 
         // Сначала пустые метки, потом обновим
         labels = emptyList()
@@ -84,10 +100,11 @@ class WeightDisplayApp : Application() {
             val content = file.readText()
             val rootData = json.decodeFromString<Histogram<Int>>(content)
             val weights = rootData.bins.map { it.weight }
+            val avg = rootData.average
 
             if (weights.isNotEmpty()) {
                 Platform.runLater {
-                    updateUI(weights, root)
+                    updateUI(weights, avg, root)
                 }
             } else {
                 println("No weights found in bins")
@@ -97,22 +114,21 @@ class WeightDisplayApp : Application() {
         }
     }
 
-    private fun updateUI(weights: List<Double>, root: HBox) {
+    private fun updateUI(weights: List<Double>, avg: Double, root: HBox) {
         // Находим максимальный вес для масштабирования шрифта
         val maxWeight = weights.maxOrNull() ?: 1.0
-        val minFontSize = 14.0
-        val maxFontSize = 72.0
 
         // Создаём или обновляем метки
         // Пересоздаём
-        root.children.clear()
+        val histogramBox = root.children[1] as HBox
+        histogramBox.children.clear()
         labels = weights.map { weight ->
             Label().apply {
                 text = weight.toString()
-                style = "-fx-text-fill: white; -fx-font-weight: bold;"
+                style = "-fx-padding: 5; -fx-text-fill: white; -fx-font-weight: bold;"
             }
         }
-        root.children.addAll(labels)
+        histogramBox.children.addAll(labels)
 
         // Обновляем размер шрифта пропорционально весу
         labels.zip(weights).forEach { (label, weight) ->
@@ -122,8 +138,12 @@ class WeightDisplayApp : Application() {
             } else {
                 minFontSize
             }
-            label.style = "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: ${fontSize}px;"
+            label.style = "-fx-padding: 5; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: ${fontSize}px;"
         }
+
+        val avgBox = root.children[0] as HBox
+        val avgLabel = avgBox.children[0] as Label
+        avgLabel.text = "Avg: $avg"
     }
 
     private fun getFilePathFromUser(): String {

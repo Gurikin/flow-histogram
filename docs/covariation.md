@@ -9,5 +9,5 @@ $$
 
 Корреляция Пирсона - это стандартизированная ковариация, делённая на стандартные отклонения.
 $$
-r = \frac{{Cov}(X, Y)}{\sigma_x \sigma_y} = \frac{\sum(X_i - \hat{X})(Y_j - \hat{Y})}{\sqrt{\sum_{i=1}^n(X_i - \hat{X})^2 \cdot \sqrt{\sum_{i=1}^n(Y_i - \hat{Y})^2}}}
+r = \frac{{Cov}(X, Y)}{\sigma_x \sigma_y} = \frac{\sum(X_i - \hat{X})(Y_j - \hat{Y})}{\sqrt{\sum_{i=1}^n(X_i - \hat{X})^2} \cdot \sqrt{\sum_{i=1}^n(Y_i - \hat{Y})^2}}
 $$

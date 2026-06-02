@@ -151,3 +151,13 @@ fun avg(left: Frame<Float>, right: Frame<Float>, binSum: Int, totalSum: Int): Fl
 
 fun avg(left: Frame<Double>, right: Frame<Double>, binSum: Int, totalSum: Int): Double =
     ((left + right).value() / 2.0) * binSum / totalSum
+
+operator fun <S> Double.minus(frame: Frame<S>): Double {
+    val frameValue = when (frame) {
+        is IntFrame -> frame.value().toInt()
+        is LongFrame -> frame.value().toLong()
+        is FloatFrame -> frame.value().toFloat()
+        is DoubleFrame -> frame.value().toDouble()
+    }.toDouble()
+    return this - frameValue
+}

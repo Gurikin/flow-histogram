@@ -59,7 +59,7 @@ class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
     var average: Double = 0.0,
-    var covariance: Double = 0.0,
+    var dispersion: Double = 0.0,
     @Transient
     private val _totalFrameSum: AtomicInt = AtomicInt(0),
     val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
@@ -165,7 +165,7 @@ class Bin<S : Comparable<S>>(
     val border: Border<S>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
-    var covariance: Double = 0.0,
+    var dispersion: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
     val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
@@ -235,10 +235,10 @@ fun Border<Long>.borderLongLenght(): Long = abs(this.to.value() - this.from.valu
 fun Border<Float>.borderFloatLenght(): Float = abs(this.to.value() - this.from.value() + 1)
 fun Border<Double>.borderDoubleLenght(): Double = abs(this.to.value() + 1)
 
-fun Border<Int>.borderIntCenter(): Int = abs(this.to.value() - this.from.value() + 1) / 2
-fun Border<Long>.borderLongCenter(): Long = abs(this.to.value() - this.from.value() + 1) / 2
-fun Border<Float>.borderFloatCenter(): Float = abs(this.to.value() - this.from.value() + 1) / 2.0f
-fun Border<Double>.borderDoubleCenter(): Double = abs(this.to.value() + 1) / 2.0
+fun Border<Int>.borderIntCenter(): Int = abs(this.to.value() + this.from.value() + 1) / 2
+fun Border<Long>.borderLongCenter(): Long = abs(this.to.value() + this.from.value() + 1) / 2
+fun Border<Float>.borderFloatCenter(): Float = abs(this.to.value() + this.from.value() + 1) / 2.0f
+fun Border<Double>.borderDoubleCenter(): Double = abs(this.to.value() + this.from.value() + 1) / 2.0
 
 @Suppress("UNCHECKED_CAST")
 fun <S> Border<S>.getBorderLength(): Double {

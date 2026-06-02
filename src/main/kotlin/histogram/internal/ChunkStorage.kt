@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 interface ChunkStorage<S : Comparable<S>> {
     suspend fun storeChunk(chunk: Chunk<S>): ChunkId
     suspend fun getChunk(chunkId: ChunkId): Chunk<S>
+    suspend fun remove(chunkId: ChunkId): Boolean
 }
 
 /**
@@ -51,5 +52,15 @@ class DefaultChunkStorage<S : Comparable<S>>(val scope: CoroutineScope) : ChunkS
                 if (result == null) delay(2.milliseconds)
             }
             result
+        }.await()
+
+    override suspend fun remove(chunkId: ChunkId): Boolean =
+        scope.async {
+            var result: Chunk<S>? = null
+            while (result == null) {
+                result = chunkMap.remove(chunkId)
+                if (result == null) delay(2.milliseconds)
+            }
+            true
         }.await()
 }

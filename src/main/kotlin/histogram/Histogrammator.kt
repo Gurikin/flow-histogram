@@ -14,9 +14,11 @@ import org.gurikin.histogram.internal.ChunkStorage
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.binInBorder
 import org.gurikin.histogram.internal.binIsCrossingBorder
+import org.gurikin.histogram.internal.calcCovariance
 import org.gurikin.histogram.internal.chunkInBorder
 import org.gurikin.histogram.internal.chunkLeftSideInBorder
 import org.gurikin.histogram.internal.chunkRightSideInBorder
+import org.gurikin.histogram.internal.clear
 import org.gurikin.histogram.internal.setWeight
 
 /**
@@ -54,6 +56,7 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         else -> refreshBin(bin)
                     }
                 }
+                chunkStorage.remove(chunkId)
                 delay(accumulateDelay)
             }
         }
@@ -83,6 +86,8 @@ class DefaultHistogrammator<S : Comparable<S>>(
         histogram.incrementFrameSum(chunkFrameSum)
         bin.incrementFrameSum(chunkFrameSum)
         bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
+        chunk.calcCovariance()
+        bin.covariance += chunk.histogram.covariance
     }
 
     private fun accumulateChunkLeftSide(bin: Bin<S>, chunk: Chunk<S>) {
@@ -92,6 +97,8 @@ class DefaultHistogrammator<S : Comparable<S>>(
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
                     bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
+                    chunk.calcCovariance()
+                    bin.covariance += chunk.histogram.covariance
                 }
 
                 else -> continue
@@ -106,6 +113,8 @@ class DefaultHistogrammator<S : Comparable<S>>(
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
                     bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
+                    chunk.calcCovariance()
+                    bin.covariance += chunk.histogram.covariance
                 }
 
                 else -> continue

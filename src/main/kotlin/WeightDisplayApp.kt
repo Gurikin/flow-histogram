@@ -170,7 +170,7 @@ fun launchHistogrammator() = runBlocking {
     val histogramBuilder = IntHistogramBuilder()
     val configuration = HistogramConfiguration(
         sourceType = HistogramSourceTypesEnum.INT,
-        histogramBorder = Border(IntFrame(0), IntFrame(999)),
+        histogramBorder = Border(IntFrame(-1000), IntFrame(999)),
         minStep = 1,
         valueList = null
     )
@@ -179,7 +179,7 @@ fun launchHistogrammator() = runBlocking {
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
     val expectedMessageCnt = 1000
-    val sourceFlowGenerator = IntFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
+    val sourceFlowGenerator = IntFlowGenerator(-1000..<999, expectedMessageCnt)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,

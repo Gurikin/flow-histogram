@@ -7,6 +7,10 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum.FLOAT
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum.INT
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -55,6 +59,7 @@ class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
     var average: Double = 0.0,
+    var covariance: Double = 0.0,
     @Transient
     private val _totalFrameSum: AtomicInt = AtomicInt(0),
     val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
@@ -160,6 +165,7 @@ class Bin<S : Comparable<S>>(
     val border: Border<S>,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
+    var covariance: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
     val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
@@ -233,3 +239,49 @@ fun Border<Int>.borderIntCenter(): Int = abs(this.to.value() - this.from.value()
 fun Border<Long>.borderLongCenter(): Long = abs(this.to.value() - this.from.value() + 1) / 2
 fun Border<Float>.borderFloatCenter(): Float = abs(this.to.value() - this.from.value() + 1) / 2.0f
 fun Border<Double>.borderDoubleCenter(): Double = abs(this.to.value() + 1) / 2.0
+
+@Suppress("UNCHECKED_CAST")
+fun <S> Border<S>.getBorderLength(): Double {
+    return when (this.type) {
+        INT -> {
+            (this as Border<Int>).borderIntLenght()
+        }
+
+        LONG -> {
+            (this as Border<Long>).borderLongLenght()
+        }
+
+        FLOAT -> {
+            (this as Border<Float>).borderFloatLenght()
+        }
+
+        DOUBLE -> {
+            (this as Border<Double>).borderDoubleLenght()
+        }
+
+        else -> throw UnsupportedOperationException("Unknown type of histogram source")
+    }.toDouble()
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <S> Border<S>.getBorderCenter(): Double {
+    return when (this.type) {
+        INT -> {
+            (this as Border<Int>).borderIntCenter()
+        }
+
+        LONG -> {
+            (this as Border<Long>).borderLongCenter()
+        }
+
+        FLOAT -> {
+            (this as Border<Float>).borderFloatCenter()
+        }
+
+        DOUBLE -> {
+            (this as Border<Double>).borderDoubleCenter()
+        }
+
+        else -> throw UnsupportedOperationException("Unknown type of histogram source")
+    }.toDouble()
+}

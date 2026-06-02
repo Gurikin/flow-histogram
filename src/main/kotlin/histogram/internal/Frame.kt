@@ -140,23 +140,14 @@ data class DoubleFrame(val value: Double) : Frame<Double>() {
     override fun compareTo(other: Double): Int = value.compareTo(other)
 }
 
-fun avg(left: Frame<Int>, right: Frame<Int>, binSum: Int, totalSum: Int): Int = ((left + right).value() / 2) * binSum / totalSum
-fun avg(left: Frame<Long>, right: Frame<Long>, binSum: Int, totalSum: Int): Long = ((left + right).value() / 2) * binSum / totalSum
-fun avg(left: Frame<Float>, right: Frame<Float>, binSum: Int, totalSum: Int): Float = ((left + right).value() / 2.0f) * binSum / totalSum
-fun avg(left: Frame<Double>, right: Frame<Double>, binSum: Int, totalSum: Int): Double = ((left + right).value() / 2.0) * binSum / totalSum
+fun avg(left: Frame<Int>, right: Frame<Int>, binSum: Int, totalSum: Int): Int =
+    ((left + right).value() / 2) * binSum / totalSum
 
-//operator fun <S> Frame<S>.plus(other: Frame<S>): Frame<*> = when {
-//    this.value() is Int -> IntFrame(this.value() as Int + other.value() as Int)
-//    this.value() is Long -> LongFrame(this.value() as Long + other.value() as Long)
-//    this.value() is Float -> FloatFrame(this.value() as Float + other.value() as Float)
-//    this.value() is Double -> DoubleFrame(this.value() as Double + other.value() as Double)
-//    else -> throw UnsupportedOperationException("Unsupported type for create frame: ${this.value()?.javaClass?.simpleName}")
-//}
-//
-//operator fun <S> Frame<S>.div(other: Frame<S>): Frame<*> = when {
-//    this.value() is Int -> IntFrame(this.value() as Int / other.value() as Int)
-//    this.value() is Long -> LongFrame(this.value() as Long / other.value() as Long)
-//    this.value() is Float -> FloatFrame(this.value() as Float / other.value() as Float)
-//    this.value() is Double -> DoubleFrame(this.value() as Double / other.value() as Double)
-//    else -> throw UnsupportedOperationException("Unsupported type for create frame: ${this.value()?.javaClass?.simpleName}")
-//}
+fun avg(left: Frame<Long>, right: Frame<Long>, binSum: Int, totalSum: Int): Long =
+    ((left + right).value() / 2) * binSum / totalSum
+
+fun avg(left: Frame<Float>, right: Frame<Float>, binSum: Int, totalSum: Int): Float =
+    ((left + right).value() / 2.0f) * binSum / totalSum
+
+fun avg(left: Frame<Double>, right: Frame<Double>, binSum: Int, totalSum: Int): Double =
+    ((left + right).value() / 2.0) * binSum / totalSum

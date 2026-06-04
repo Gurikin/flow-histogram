@@ -11,9 +11,9 @@ import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.calcBinsCount
 
 /**
- * Implementaion of [HistogramBuilder] for [Int] type
+ * Implementation of [HistogramBuilder] for [Int] type
  * As is type is possible very different its need
- * to create Histogram instance for each type particullary.
+ * to create Histogram instance for each type particular.
  *
  * Only 1D histogram are possible now
  */

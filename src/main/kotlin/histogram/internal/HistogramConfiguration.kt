@@ -54,7 +54,6 @@ fun <S : Comparable<S>> HistogramConfiguration<S>.generateChunks(histogramBuilde
 }
 
 fun <S : Comparable<S>> HistogramConfiguration<S>.calcChunksCount(): Int {
-    val stepCount = this.getBorderLength() / this.getMinStep()
     return (this.calcBinsCount() / (this.getMinStep())).toInt()
 }
 

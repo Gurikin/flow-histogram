@@ -195,7 +195,7 @@ fun launchHistogrammator() = runBlocking {
 
     this.launch {
         val globalBorder: Border<Int> =
-            Border(IntFrame(0), IntFrame(chunks.last().histogram.bins.last().border.to.value()))
+            Border(IntFrame(0), IntFrame(chunks.last().histogram.bins.last().xBorder.to.value()))
         val histogram = histogramBuilder.initHistogram(globalBorder, 10)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,

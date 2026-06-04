@@ -24,12 +24,12 @@ class IntHistogramBuilderTest {
         val histogram = IntHistogramBuilder().initHistogram(border, binsCount)
         assertEquals(binsCount, histogram.bins.size)
         for (i in (0..(border.to.value() % binsCount))) {
-            assertEquals(11, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
+            assertEquals(11, histogram.bins[i].xBorder.to.value() - histogram.bins[i].xBorder.from.value() + 1)
         }
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
-            assertEquals(10, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
+            assertEquals(10, histogram.bins[i].xBorder.to.value() - histogram.bins[i].xBorder.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLength() })
+        assertEquals(153, histogram.bins.sumOf { (it.xBorder).borderIntLength() })
     }
 
     @Test
@@ -89,11 +89,11 @@ class IntHistogramBuilderTest {
             8 //calculated manually by formula from [org.gurikin.histogram.num_histogram.IntHistogramBuilder.calcBinsCount]
         assertEquals(binsCount, histogram.bins.size)
         for (i in (0..(border.to.value() % binsCount))) {
-            assertEquals(20, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
+            assertEquals(20, histogram.bins[i].xBorder.to.value() - histogram.bins[i].xBorder.from.value() + 1)
         }
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
-            assertEquals(19, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
+            assertEquals(19, histogram.bins[i].xBorder.to.value() - histogram.bins[i].xBorder.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLength() })
+        assertEquals(153, histogram.bins.sumOf { (it.xBorder).borderIntLength() })
     }
 }

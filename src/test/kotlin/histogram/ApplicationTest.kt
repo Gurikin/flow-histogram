@@ -20,7 +20,6 @@ import org.gurikin.histogram.internal.ChunkId
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
@@ -101,8 +100,8 @@ class ApplicationTest {
                 val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
                 chunks.add(chunk)
                 border = Border(
-                    IntFrame(chunk.histogram.bins.last().border.to.value() + 1),
-                    IntFrame(chunk.histogram.bins.last().border.to.value() + step)
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
                 )
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
@@ -125,7 +124,7 @@ class ApplicationTest {
             this.launch {
                 val globalBorder: Border<Int> = Border(
                     IntFrame(0),
-                    IntFrame(chunks.last().histogram.bins.last().border.to.value())
+                    IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
                 )
                 val histogram = histogramBuilder.initHistogram(globalBorder, 10)
                 val histogrammator = DefaultHistogrammator(
@@ -145,7 +144,7 @@ class ApplicationTest {
                 accumulateJob.cancel()
                 println("Test complete successfully")
                 val binsString =
-                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.border.from} To: ${it.border.to} Weight: ${it.weight} FrameSum: ${it.getFrameSum()}" }
+                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.xBorder.from} To: ${it.xBorder.to} Weight: ${it.weight} FrameSum: ${it.getFrameSum()}" }
                 println("Histogram(totalFrameSum=${histogrammator.histogram.getFrameSum()}, bins=$binsString)")
                 val binsFrameSum = histogrammator.histogram.bins.sumOf { it.getFrameSum() }
                 println("BinsFrameSum=$binsFrameSum")
@@ -174,8 +173,8 @@ class ApplicationTest {
                 val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
                 chunks.add(chunk)
                 border = Border(
-                    IntFrame(chunk.histogram.bins.last().border.to.value() + 1),
-                    IntFrame(chunk.histogram.bins.last().border.to.value() + step)
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
                 )
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
@@ -194,7 +193,7 @@ class ApplicationTest {
             this.launch {
                 val globalBorder: Border<Int> = Border(
                     IntFrame(0),
-                    IntFrame(chunks.last().histogram.bins.last().border.to.value())
+                    IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
                 )
                 val histogram = histogramBuilder.initHistogram(globalBorder, 6)
                 val histogrammator = DefaultHistogrammator(

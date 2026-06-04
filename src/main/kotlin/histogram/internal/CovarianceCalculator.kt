@@ -10,11 +10,11 @@ package org.gurikin.histogram.internal
 
 fun <S : Comparable<S>> Chunk<S>.calcDispersion() {
     val mean = this.histogram.bins.sumOf {bin ->
-        bin.border.getBorderCenter() * bin.getFrameSum()
+        bin.xBorder.getBorderCenter() * bin.getFrameSum()
     } / this.histogram.getFrameSum()
 
     for (bin in this.histogram.bins) {
-        val center = bin.border.getBorderCenter()
+        val center = bin.xBorder.getBorderCenter()
         val deviation = center - mean
         bin.dispersion = bin.weight * deviation * deviation
         this.histogram.dispersion += bin.dispersion

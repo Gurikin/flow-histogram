@@ -37,7 +37,7 @@ data class Chunk<S : Comparable<S>>(
 ) : Comparable<Chunk<S>> {
 
     override fun compareTo(other: Chunk<S>): Int =
-        this.histogram.bins[0].border.from.compareTo(other.histogram.bins[0].border.from)
+        this.histogram.bins[0].xBorder.from.compareTo(other.histogram.bins[0].xBorder.from)
 
     fun copy(): Chunk<S> = Chunk(
         histogram = this.histogram.copy(),
@@ -66,8 +66,8 @@ class DefaultChunkAggregator<S : Comparable<S>>(
     override suspend fun collectData() {
         framesFlow.onEach { frame ->
             for (chunk in chunks) {
-                if (chunk.histogram.bins.first().border.from <= frame!!
-                    && chunk.histogram.bins.last().border.to >= frame
+                if (chunk.histogram.bins.first().xBorder.from <= frame!!
+                    && chunk.histogram.bins.last().xBorder.to >= frame
                 ) {
                     chunk.histogram.add(frame)
                     println("[ChunkAggregator] Frame: ${frame.value()}")

@@ -7,7 +7,6 @@ import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.HistogramBuilder
 import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.calcBinsCount
 
 /**
@@ -37,14 +36,14 @@ class IntHistogramBuilder : HistogramBuilder<Int> {
         val bins: MutableList<Bin<Int>> = mutableListOf()
         var currBin = Bin(Border(border.from, border.from + step - 1))
         for (i in (0..<binsCount)) {
-            val binFrom = currBin.border.from
+            val binFrom = currBin.xBorder.from
             val correctionToBin = remOfDiv.addCorrectionToBin()
-            val binTo = currBin.border.to + correctionToBin
+            val binTo = currBin.xBorder.to + correctionToBin
             remOfDiv -= correctionToBin
             val border = Border(binFrom, binTo)
             val bin = Bin(border)
             bins.add(bin)
-            currBin = Bin(Border(bin.border.to + 1, bin.border.to + step))
+            currBin = Bin(Border(bin.xBorder.to + 1, bin.xBorder.to + step))
         }
         return Histogram(bins = bins, totalFrameSum = 0)
     }

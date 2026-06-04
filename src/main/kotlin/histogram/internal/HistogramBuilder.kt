@@ -85,36 +85,36 @@ class Histogram<S : Comparable<S>>(
     @Suppress("UNCHECKED_CAST")
     fun refreshAvg() {
         this.bins.forEach { bin ->
-            val binAvg = when (bin.border.type) {
+            val binAvg = when (bin.xBorder.type) {
                 HistogramSourceTypesEnum.INT -> avg(
-                    (bin.border as Border<Int>).from,
-                    bin.border.to,
+                    (bin.xBorder as Border<Int>).from,
+                    bin.xBorder.to,
                     bin.getFrameSum(),
                     this.getFrameSum()
                 )
 
                 HistogramSourceTypesEnum.LONG -> avg(
-                    (bin.border as Border<Long>).from,
-                    bin.border.to,
+                    (bin.xBorder as Border<Long>).from,
+                    bin.xBorder.to,
                     bin.getFrameSum(),
                     this.getFrameSum()
                 )
 
                 HistogramSourceTypesEnum.FLOAT -> avg(
-                    (bin.border as Border<Float>).from,
-                    bin.border.to,
+                    (bin.xBorder as Border<Float>).from,
+                    bin.xBorder.to,
                     bin.getFrameSum(),
                     this.getFrameSum()
                 )
 
                 HistogramSourceTypesEnum.DOUBLE -> avg(
-                    (bin.border as Border<Double>).from,
-                    bin.border.to,
+                    (bin.xBorder as Border<Double>).from,
+                    bin.xBorder.to,
                     bin.getFrameSum(),
                     this.getFrameSum()
                 )
 
-                else -> throw UnsupportedOperationException("Unknown type for frame ${bin.border.from::class}")
+                else -> throw UnsupportedOperationException("Unknown type for frame ${bin.xBorder.from::class}")
             }.toDouble()
             this.average += binAvg
         }
@@ -162,7 +162,9 @@ fun <S : Comparable<S>> Histogram<S>.copy(): Histogram<S> {
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
 class Bin<S : Comparable<S>>(
-    val border: Border<S>,
+    val xBorder: Border<S>,
+    val yBorder: Border<S>? = null,
+    val zBorder: Border<S>? = null,
     private var frameSum: Int = 0,
     internal var weight: Double = 0.0,
     var dispersion: Double = 0.0,
@@ -191,14 +193,14 @@ class Bin<S : Comparable<S>>(
 
 @OptIn(ExperimentalAtomicApi::class)
 fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
-    border = this.border,
+    xBorder = this.xBorder,
     frameSum = this.getFrameSum(),
     weight = this.weight,
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
 fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
-    (this.border.from <= frame && this.border.to >= frame)
+    (this.xBorder.from <= frame && this.xBorder.to >= frame)
 
 fun <S : Comparable<S>> Bin<S>.addFrame() {
     this.incrementFrameSum(1)
@@ -209,19 +211,19 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from >= this.border.from && chunk.histogram.bins.last().border.to <= this.border.to)
+    (chunk.histogram.bins.first().xBorder.from >= this.xBorder.from && chunk.histogram.bins.last().xBorder.to <= this.xBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.to && chunk.histogram.bins.last().border.to > this.border.to)
+    (chunk.histogram.bins.first().xBorder.from < this.xBorder.to && chunk.histogram.bins.last().xBorder.to > this.xBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().border.from < this.border.from && chunk.histogram.bins.last().border.to > this.border.from)
+    (chunk.histogram.bins.first().xBorder.from < this.xBorder.from && chunk.histogram.bins.last().xBorder.to > this.xBorder.from)
 
 fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from >= this.border.from && otherBin.border.to <= this.border.to)
+    (otherBin.xBorder.from >= this.xBorder.from && otherBin.xBorder.to <= this.xBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.border.from < this.border.from && otherBin.border.to > this.border.from) || (otherBin.border.from < this.border.to && otherBin.border.to > this.border.to)
+    (otherBin.xBorder.from < this.xBorder.from && otherBin.xBorder.to > this.xBorder.from) || (otherBin.xBorder.from < this.xBorder.to && otherBin.xBorder.to > this.xBorder.to)
 
 @Serializable
 data class Border<S>(

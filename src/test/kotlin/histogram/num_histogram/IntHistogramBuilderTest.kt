@@ -6,10 +6,9 @@ import kotlinx.coroutines.test.runTest
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.HistogramConfiguration
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
-import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.add
-import org.gurikin.histogram.internal.borderIntLenght
+import org.gurikin.histogram.internal.borderIntLength
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.DisplayName
 
@@ -30,7 +29,7 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
             assertEquals(10, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLength() })
     }
 
     @Test
@@ -95,6 +94,6 @@ class IntHistogramBuilderTest {
         for (i in ((border.to.value() % binsCount) + 1..<binsCount)) {
             assertEquals(19, histogram.bins[i].border.to.value() - histogram.bins[i].border.from.value() + 1)
         }
-        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLenght() })
+        assertEquals(153, histogram.bins.sumOf { (it.border).borderIntLength() })
     }
 }

@@ -227,13 +227,13 @@ fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
 data class Border<S>(
     val from: Frame<S>,
     val to: Frame<S>,
-    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT
+    val type: HistogramSourceTypesEnum = INT
 )
 
-fun Border<Int>.borderIntLenght(): Int = abs(this.to.value() - this.from.value() + 1)
-fun Border<Long>.borderLongLenght(): Long = abs(this.to.value() - this.from.value() + 1)
-fun Border<Float>.borderFloatLenght(): Float = abs(this.to.value() - this.from.value() + 1)
-fun Border<Double>.borderDoubleLenght(): Double = abs(this.to.value() + 1)
+fun Border<Int>.borderIntLength(): Int = abs(this.to.value() - this.from.value() + 1)
+fun Border<Long>.borderLongLength(): Long = abs(this.to.value() - this.from.value() + 1)
+fun Border<Float>.borderFloatLength(): Float = abs(this.to.value() - this.from.value() + 1)
+fun Border<Double>.borderDoubleLength(): Double = abs(this.to.value() - this.from.value() + 1)
 
 fun Border<Int>.borderIntCenter(): Int = abs(this.to.value() + this.from.value() + 1) / 2
 fun Border<Long>.borderLongCenter(): Long = abs(this.to.value() + this.from.value() + 1) / 2
@@ -244,19 +244,19 @@ fun Border<Double>.borderDoubleCenter(): Double = abs(this.to.value() + this.fro
 fun <S> Border<S>.getBorderLength(): Double {
     return when (this.type) {
         INT -> {
-            (this as Border<Int>).borderIntLenght()
+            (this as Border<Int>).borderIntLength()
         }
 
         LONG -> {
-            (this as Border<Long>).borderLongLenght()
+            (this as Border<Long>).borderLongLength()
         }
 
         FLOAT -> {
-            (this as Border<Float>).borderFloatLenght()
+            (this as Border<Float>).borderFloatLength()
         }
 
         DOUBLE -> {
-            (this as Border<Double>).borderDoubleLenght()
+            (this as Border<Double>).borderDoubleLength()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")

@@ -20,13 +20,14 @@ class HistogramConfiguration<S : Comparable<S>>(
 
 const val CHUNK_BIN_COUNT = 10
 
+@Suppress("UNCHECKED_CAST")
 fun <S : Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Frame<S> {
     if (value is Number) {
         return when (this.sourceType) {
-            HistogramSourceTypesEnum.INT -> IntFrame(value.toInt())
-            HistogramSourceTypesEnum.LONG -> LongFrame(value.toLong())
-            HistogramSourceTypesEnum.FLOAT -> FloatFrame(value.toFloat())
-            HistogramSourceTypesEnum.DOUBLE -> DoubleFrame(value.toDouble())
+            INT -> IntFrame(value.toInt())
+            LONG -> LongFrame(value.toLong())
+            FLOAT -> FloatFrame(value.toFloat())
+            DOUBLE -> DoubleFrame(value.toDouble())
             else -> throw UnsupportedOperationException("Unknown type for frame ${value::class}")
         } as Frame<S>
     } else {
@@ -38,13 +39,13 @@ fun <S : Comparable<S>> HistogramConfiguration<S>.frameFactory(value: Any): Fram
 fun <S : Comparable<S>> HistogramConfiguration<S>.generateChunks(histogramBuilder: HistogramBuilder<S>): Set<Chunk<S>> {
     val chunks = TreeSet<Chunk<S>>()
     val chunksCount = this.calcChunksCount()
-    val borderLenght = this.getBorderLength()
-    val chunkBorderLenght = borderLenght / chunksCount
+    val borderLength = this.getBorderLength()
+    val chunkBorderLength = borderLength / chunksCount
     var border: Border<S>
     (0..chunksCount).forEach {
         border = Border(
-            this.frameFactory(it * chunkBorderLenght),
-            this.frameFactory(it * chunkBorderLenght + chunkBorderLenght - 1)
+            this.frameFactory(it * chunkBorderLength),
+            this.frameFactory(it * chunkBorderLength + chunkBorderLength - 1)
         )
         val chunk = Chunk(histogram = histogramBuilder.initHistogram(border, CHUNK_BIN_COUNT), chunkId = ChunkId())
         chunks.add(chunk)
@@ -73,19 +74,19 @@ fun <S : Comparable<S>> HistogramConfiguration<S>.calcBinsCount(): Int {
 private fun <S : Comparable<S>> HistogramConfiguration<S>.getBorderLength(): Double {
     return when (this.sourceType) {
         INT -> {
-            (this.histogramBorder as Border<Int>).borderIntLenght()
+            (this.histogramBorder as Border<Int>).borderIntLength()
         }
 
         LONG -> {
-            (this.histogramBorder as Border<Long>).borderLongLenght()
+            (this.histogramBorder as Border<Long>).borderLongLength()
         }
 
         FLOAT -> {
-            (this.histogramBorder as Border<Float>).borderFloatLenght()
+            (this.histogramBorder as Border<Float>).borderFloatLength()
         }
 
         DOUBLE -> {
-            (this.histogramBorder as Border<Double>).borderDoubleLenght()
+            (this.histogramBorder as Border<Double>).borderDoubleLength()
         }
 
         else -> throw UnsupportedOperationException("Unknown type of histogram source")

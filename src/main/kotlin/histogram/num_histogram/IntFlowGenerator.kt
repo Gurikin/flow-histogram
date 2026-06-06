@@ -25,9 +25,13 @@ class IntFlowGenerator(
                 if (isGaussian) {
                     val x = Random.nextInt(range)
                     val gausX: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
-                    emit(IntFrame((gausX * messagesCount).toInt()))
+                    val frame = IntFrame((gausX * messagesCount).toInt())
+                    println("[FlowGenerator] Frame = $frame")
+                    emit(frame)
                 } else {
-                    emit(IntFrame(Random.nextInt(range)))
+                    val frame = IntFrame(Random.nextInt(range))
+                    println("[FlowGenerator] Frame = $frame")
+                    emit(frame)
                 }
 
             }

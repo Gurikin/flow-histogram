@@ -1,16 +1,13 @@
 package org.gurikin.histogram.internal
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.gurikin.histogram.internal.HistogramSourceTypesEnum.*
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
-import org.gurikin.histogram.internal.HistogramSourceTypesEnum.FLOAT
-import org.gurikin.histogram.internal.HistogramSourceTypesEnum.INT
-import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -199,8 +196,23 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
-fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean =
-    (this.xBorder.from <= frame && this.xBorder.to >= frame)
+fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean {
+    fun <S : Comparable<S>> checkBorder(border: Border<S>, frame: Frame<S>): Boolean {
+        return border.from <= frame && border.to >= frame
+    }
+
+    var frameInBorder: Boolean = true
+    if (this.zBorder != null) {
+        frameInBorder = checkBorder(this.zBorder, frame)
+    }
+    if (this.yBorder != null) {
+        frameInBorder = this.yBorder.from <= frame && this.yBorder.to >= frame
+    }
+    if (frameInBorder) {
+        frameInBorder = this.xBorder.from <= frame && this.xBorder.to >= frame
+    }
+    return frameInBorder
+}
 
 fun <S : Comparable<S>> Bin<S>.addFrame() {
     this.incrementFrameSum(1)

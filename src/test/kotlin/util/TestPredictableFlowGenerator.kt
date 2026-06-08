@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.gurikin.histogram.SourceFlowGenerator
 import org.gurikin.histogram.internal.Frame
-import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.Point
+import org.gurikin.histogram.internal.PointFrame
 
 /**
  * Test flow generator with predictable weights of each bin.
@@ -22,7 +23,7 @@ import org.gurikin.histogram.internal.IntFrame
  *  Generate 1000 messages with predictable separation
  */
 class TestPredictableFlowGenerator(private val scope: CoroutineScope) : SourceFlowGenerator<Int> {
-    override fun flowData(): Flow<Frame<Int>?> = channelFlow {
+    override fun flowData(): Flow<Frame<Point<Int>>?> = channelFlow {
         val messagesCount: Int = 100
         val binPercentage = listOf(0.05, 0.07, 0.56, 0.22, 0.08, 0.02)
         var from = 0
@@ -35,16 +36,16 @@ class TestPredictableFlowGenerator(private val scope: CoroutineScope) : SourceFl
         }
     }
 
-    private fun getListToEmit(from: Int, to: Int, binIndex: Int): List<Frame<Int>> {
-        val result = mutableListOf<Frame<Int>>()
+    private fun getListToEmit(from: Int, to: Int, binIndex: Int): List<Frame<Point<Int>>> {
+        val result = mutableListOf<Frame<Point<Int>>>()
         repeat(to - from) {
             when (binIndex) {
-                0 -> result.add(IntFrame(0))
-                1 -> result.add(IntFrame(8))
-                2 -> result.add(IntFrame(30))
-                3 -> result.add(IntFrame(52))
-                4 -> result.add(IntFrame(70))
-                5 -> result.add(IntFrame(98))
+                0 -> result.add(PointFrame(Point(0)))
+                1 -> result.add(PointFrame(Point(8)))
+                2 -> result.add(PointFrame(Point(30)))
+                3 -> result.add(PointFrame(Point(52)))
+                4 -> result.add(PointFrame(Point(70)))
+                5 -> result.add(PointFrame(Point(98)))
             }
 
         }

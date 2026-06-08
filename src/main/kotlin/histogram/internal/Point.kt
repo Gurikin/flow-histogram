@@ -1,10 +1,13 @@
 package org.gurikin.histogram.internal
 
+import kotlinx.serialization.Serializable
+
 interface IPoint<S : Comparable<S>> {
     fun dimension(): PointDimension
     operator fun compareTo(other: Point<S>): Int
 }
 
+@Serializable
 class Point<S : Comparable<S>>(
     val x: S,
     val y: S? = null,

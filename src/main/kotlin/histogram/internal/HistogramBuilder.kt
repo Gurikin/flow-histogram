@@ -126,10 +126,10 @@ class Histogram<S : Comparable<S>> (
     }
 }
 
-fun <S : Comparable<S>> Histogram<S>.add(value: Frame<S>) {
+fun <S : Comparable<S>> Histogram<S>.add(value: Frame<Point<S>>) {
     // TODO replace with binary search
     for (bin in this.bins) {
-        if (bin.frameInBorder(value)) {
+        if (bin.frameInBorder(value.value())) {
             incrementFrameSum(1)
             bin.addFrame()
             break
@@ -203,20 +203,20 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
-fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Frame<S>): Boolean {
-    fun <S : Comparable<S>> checkBorder(border: Border<S>, frame: Frame<S>): Boolean {
+fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Point<S>): Boolean {
+    fun <S : Comparable<S>> checkBorder(border: Border<S>, frame: S): Boolean {
         return border.from <= frame && border.to >= frame
     }
 
     var frameInBorder: Boolean = true
     if (this.zBorder != null) {
-        frameInBorder = checkBorder(this.zBorder, frame)
+        frameInBorder = checkBorder(this.zBorder, frame.z!!)
     }
     if (this.yBorder != null) {
-        frameInBorder = this.yBorder.from <= frame && this.yBorder.to >= frame
+        frameInBorder = checkBorder(this.yBorder, frame.y!!)
     }
     if (frameInBorder) {
-        frameInBorder = this.xBorder.from <= frame && this.xBorder.to >= frame
+        frameInBorder = checkBorder(this.xBorder, frame.x)
     }
     return frameInBorder
 }
@@ -230,19 +230,31 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().xBorder.from >= this.xBorder.from && chunk.histogram.bins.last().xBorder.to <= this.xBorder.to)
+    (chunk.histogram.bins.first().xBorder.from >= this.xBorder.from && chunk.histogram.bins.last().xBorder.to <= this.xBorder.to) &&
+            (this.yBorder == null || chunk.histogram.bins.first().yBorder!!.from >= this.yBorder!!.from && chunk.histogram.bins.last().yBorder!!.to <= this.yBorder.to) &&
+            (this.zBorder == null || chunk.histogram.bins.first().zBorder!!.from >= this.zBorder!!.from && chunk.histogram.bins.last().zBorder!!.to <= this.zBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().xBorder.from < this.xBorder.to && chunk.histogram.bins.last().xBorder.to > this.xBorder.to)
+    (chunk.histogram.bins.first().xBorder.from < this.xBorder.to && chunk.histogram.bins.last().xBorder.to > this.xBorder.to) &&
+            (this.yBorder == null || chunk.histogram.bins.first().yBorder!!.from < this.yBorder.to && chunk.histogram.bins.last().yBorder!!.to > this.yBorder.to) &&
+            (this.zBorder == null || chunk.histogram.bins.first().zBorder!!.from < this.zBorder.to && chunk.histogram.bins.last().zBorder!!.to > this.zBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkRightSideInBorder(chunk: Chunk<S>): Boolean =
-    (chunk.histogram.bins.first().xBorder.from < this.xBorder.from && chunk.histogram.bins.last().xBorder.to > this.xBorder.from)
+    (chunk.histogram.bins.first().xBorder.from < this.xBorder.from && chunk.histogram.bins.last().xBorder.to > this.xBorder.from) &&
+            (this.yBorder == null || chunk.histogram.bins.first().yBorder!!.from < this.yBorder.from && chunk.histogram.bins.last().yBorder!!.to > this.yBorder.from) &&
+            (this.zBorder == null || chunk.histogram.bins.first().zBorder!!.from < this.zBorder.from && chunk.histogram.bins.last().zBorder!!.to > this.zBorder.from)
 
 fun <S : Comparable<S>> Bin<S>.binInBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.xBorder.from >= this.xBorder.from && otherBin.xBorder.to <= this.xBorder.to)
+    (otherBin.xBorder.from >= this.xBorder.from && otherBin.xBorder.to <= this.xBorder.to) &&
+            (this.yBorder == null || otherBin.yBorder!!.from >= this.yBorder.from && otherBin.yBorder.to <= this.yBorder.to) &&
+            (this.zBorder == null || otherBin.zBorder!!.from >= this.zBorder.from && otherBin.zBorder.to <= this.zBorder.to)
 
-fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean =
-    (otherBin.xBorder.from < this.xBorder.from && otherBin.xBorder.to > this.xBorder.from) || (otherBin.xBorder.from < this.xBorder.to && otherBin.xBorder.to > this.xBorder.to)
+fun <S : Comparable<S>> Bin<S>.binIsCrossingBorder(otherBin: Bin<S>): Boolean {
+    return (otherBin.xBorder.from < this.xBorder.from && otherBin.xBorder.to > this.xBorder.from) || (otherBin.xBorder.from < this.xBorder.to && otherBin.xBorder.to > this.xBorder.to) &&
+            (this.yBorder == null || (otherBin.yBorder!!.from < this.yBorder.from && otherBin.yBorder.to > this.yBorder.from) || (otherBin.yBorder.from < this.yBorder.to && otherBin.yBorder.to > this.yBorder.to)) &&
+            (this.zBorder == null || (otherBin.zBorder!!.from < this.zBorder.from && otherBin.zBorder.to > this.zBorder.from) || (otherBin.zBorder.from < this.zBorder.to && otherBin.zBorder.to > this.zBorder.to))
+}
+
 
 @Serializable
 data class Border<S>(

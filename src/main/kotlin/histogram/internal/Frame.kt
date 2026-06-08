@@ -140,6 +140,118 @@ data class DoubleFrame(val value: Double) : Frame<Double>() {
     override fun compareTo(other: Double): Int = value.compareTo(other)
 }
 
+@Serializable
+@SerialName("PointFrame")
+data class PointFrame(val value: Point<Int>) : Frame<Point<Int>>() {
+    override fun value(): Point<Int> = value
+
+    override fun plus(other: Frame<Point<Int>>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x + other.value().x,
+                this.value().y?.plus(other.value().y!!),
+                this.value().z?.plus(other.value().z!!)
+            )
+        )
+    }
+
+    override fun minus(other: Frame<Point<Int>>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x - other.value().x,
+                this.value().y?.minus(other.value().y!!),
+                this.value().z?.minus(other.value().z!!)
+            )
+        )
+    }
+
+    override fun times(other: Frame<Point<Int>>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x * other.value().x,
+                this.value().y?.times(other.value().y!!),
+                this.value().z?.times(other.value().z!!)
+            )
+        )
+    }
+
+    override fun div(other: Frame<Point<Int>>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x / other.value().x,
+                this.value().y?.div(other.value().y!!),
+                this.value().z?.div(other.value().z!!)
+            )
+        )
+    }
+
+    override fun rem(other: Frame<Point<Int>>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x % other.value().x,
+                this.value().y?.rem(other.value().y!!),
+                this.value().z?.rem(other.value().z!!)
+            )
+        )
+    }
+
+    override fun compareTo(other: Frame<Point<Int>>): Int {
+        return this.value().compareTo(other.value())
+    }
+
+    override fun plus(other: Point<Int>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x + other.x,
+                this.value().y?.plus(other.y!!),
+                this.value().z?.plus(other.z!!)
+            )
+        )
+    }
+
+    override fun minus(other: Point<Int>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x - other.x,
+                this.value().y?.minus(other.y!!),
+                this.value().z?.minus(other.z!!)
+            )
+        )
+    }
+
+    override fun times(other: Point<Int>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x * other.x,
+                this.value().y?.times(other.y!!),
+                this.value().z?.times(other.z!!)
+            )
+        )
+    }
+
+    override fun div(other: Point<Int>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x / other.x,
+                this.value().y?.div(other.y!!),
+                this.value().z?.div(other.z!!)
+            )
+        )
+    }
+
+    override fun rem(other: Point<Int>): Frame<Point<Int>> {
+        return PointFrame(
+            Point(
+                this.value().x % other.x,
+                this.value().y?.rem(other.y!!),
+                this.value().z?.rem(other.z!!)
+            )
+        )
+    }
+
+    override fun compareTo(other: Point<Int>): Int = value.compareTo(other)
+}
+
 fun avg(left: Frame<Int>, right: Frame<Int>, binSum: Int, totalSum: Int): Int =
     ((left + right).value() / 2) * binSum / totalSum
 
@@ -158,6 +270,7 @@ operator fun <S> Double.minus(frame: Frame<S>): Double {
         is LongFrame -> frame.value().toLong()
         is FloatFrame -> frame.value().toFloat()
         is DoubleFrame -> frame.value().toDouble()
+        else -> throw UnsupportedOperationException("Couldn operate Double minus ${frame::class}")
     }.toDouble()
     return this - frameValue
 }

@@ -11,7 +11,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import org.gurikin.histogram.SourceFlowGenerator
-import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.Point
+import org.gurikin.histogram.internal.PointFrame
 
 class IntFlowGenerator(
     private val range: IntRange,
@@ -25,11 +26,11 @@ class IntFlowGenerator(
                 if (isGaussian) {
                     val x = Random.nextInt(range)
                     val gausX: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
-                    val frame = IntFrame((gausX * messagesCount).toInt())
+                    val frame = PointFrame(Point((gausX * messagesCount).toInt()))
                     println("[FlowGenerator] Frame = $frame")
                     emit(frame)
                 } else {
-                    val frame = IntFrame(Random.nextInt(range))
+                    val frame = PointFrame(Point(Random.nextInt(range)))
                     println("[FlowGenerator] Frame = $frame")
                     emit(frame)
                 }

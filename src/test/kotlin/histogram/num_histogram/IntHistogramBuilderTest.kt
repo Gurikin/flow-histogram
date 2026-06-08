@@ -7,6 +7,8 @@ import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.HistogramConfiguration
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum
 import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.Point
+import org.gurikin.histogram.internal.PointFrame
 import org.gurikin.histogram.internal.add
 import org.gurikin.histogram.internal.borderIntLength
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
@@ -42,9 +44,9 @@ class IntHistogramBuilderTest {
             val histogram = histogramBuilder.initHistogram(border, binsCount)
             for (i in 0..<100) {
                 when (i) {
-                    in (0..49) -> histogram.add(IntFrame(49))
-                    in (50..89) -> histogram.add(IntFrame(89))
-                    else -> histogram.add(IntFrame(9))
+                    in (0..49) -> histogram.add(PointFrame(Point(49)))
+                    in (50..89) -> histogram.add(PointFrame(Point(89)))
+                    else -> histogram.add(PointFrame(Point(9)))
                 }
             }
             assertEquals(100, histogram.getFrameSum())
@@ -64,9 +66,9 @@ class IntHistogramBuilderTest {
             val histogram = histogramBuilder.initHistogram(border, binsCount)
             for (i in 0..<100) {
                 when (i) {
-                    in (0..49) -> histogram.add(IntFrame(10))
-                    in (50..89) -> histogram.add(IntFrame(21))
-                    else -> histogram.add(IntFrame(22))
+                    in (0..49) -> histogram.add(PointFrame(Point(10)))
+                    in (50..89) -> histogram.add(PointFrame(Point(21)))
+                    else -> histogram.add(PointFrame(Point(22)))
                 }
             }
             assertEquals(100, histogram.getFrameSum())

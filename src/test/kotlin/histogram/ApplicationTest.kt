@@ -21,6 +21,8 @@ import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.Point
+import org.gurikin.histogram.internal.PointFrame
 import org.gurikin.histogram.internal.frameInBorder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
@@ -44,7 +46,7 @@ class ApplicationTest {
                     IntFrame(histogramNum * step + step - 1)
                 )
             }
-            println("frame in border: " + chunks.first().histogram.bins.first().frameInBorder(IntFrame(8)))
+            println("frame in border: " + chunks.first().histogram.bins.first().frameInBorder(Point(8)))
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
             val expectedMessageCnt = 200

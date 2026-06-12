@@ -24,6 +24,8 @@ import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.Point
 import org.gurikin.histogram.internal.PointFrame
 import org.gurikin.histogram.internal.frameInBorder
+import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
+import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -252,6 +254,79 @@ class ApplicationTest {
                     histogram.bins[5].weight.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN)
                 )
                 //Histogram(totalFrameSum=100, bins=From: 0 To: 16 Weight: 0.12 FrameSum: 12,From: 17 To: 33 Weight: 0.56 FrameSum: 56,From: 34 To: 50 Weight: 0.0 FrameSum: 0,From: 51 To: 67 Weight: 0.22 FrameSum: 22,From: 68 To: 83 Weight: 0.08 FrameSum: 8,From: 84 To: 99 Weight: 0.02 FrameSum: 2)
+                this@runBlocking.coroutineContext.cancelChildren()
+            }
+        }
+    }
+
+    @Test
+    fun `test 3d histogrammator accumulate 5000 messages`() {
+        runBlocking {
+            val histogramBuilder = Int3DHistogramBuilder()
+            val chunks = TreeSet<Chunk<Int>>()
+            val step = 100
+            val binsCount = 10
+            var border: Border<Int> =
+                Border(IntFrame(0), IntFrame(step - 1))
+            (0..9).forEach { histogramNum ->
+                val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
+                chunks.add(chunk)
+                border = Border(
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
+                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
+                )
+            }
+            val chunkStorage = DefaultChunkStorage<Int>(this)
+            val chunkQueue = DefaultChunkQueue(this)
+            val expectedMessageCnt = 1000
+            val sourceFlowGenerator = Int3DFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
+            val sourceFlow = sourceFlowGenerator.flowData()
+            val chunkAggregator = DefaultChunkAggregator(
+                framesFlow = sourceFlow,
+                chunks = chunks,
+                chunkStorage = chunkStorage,
+                chunkQueue = chunkQueue,
+                scope = this,
+                queueSendTimeout = 100.milliseconds,
+            )
+
+            chunkAggregator.collectData()
+
+
+            this.launch {
+                val globalBorder: Border<Int> = Border(
+                    IntFrame(0),
+                    IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
+                )
+                val histogram = histogramBuilder.initHistogram(globalBorder, 10)
+                val histogrammator = DefaultHistogrammator(
+                    histogram = histogram,
+                    chunkQueue = chunkQueue,
+                    chunkStorage = chunkStorage,
+                    scope = this
+                )
+                val accumulateJob = launch { histogrammator.accumulate() }
+                var totalWeight = 0.0
+                while (histogrammator.histogram.getFrameSum() < 5000) {
+                    println("Accumulate general histogram...")
+                    println("Total message count = ${histogrammator.histogram.getFrameSum()}")
+                    delay(1000.milliseconds)
+                    totalWeight = histogrammator.getTotalWeight()
+                }
+                accumulateJob.cancel()
+                println("Test complete successfully")
+                val binsString =
+                    histogrammator.histogram.bins.joinToString(",") { "From: ${it.xBorder.from} To: ${it.xBorder.to} Weight: ${it.weight} FrameSum: ${it.getFrameSum()}" }
+                println("Histogram(totalFrameSum=${histogrammator.histogram.getFrameSum()}, bins=$binsString)")
+                val binsFrameSum = histogrammator.histogram.bins.sumOf { it.getFrameSum() }
+                println("BinsFrameSum=$binsFrameSum")
+                assertEquals(
+                    BigDecimal.ONE.setScale(
+                        2,
+                        RoundingMode.HALF_EVEN
+                    ),
+                    totalWeight.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN)
+                )
                 this@runBlocking.coroutineContext.cancelChildren()
             }
         }

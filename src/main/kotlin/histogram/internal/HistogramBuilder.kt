@@ -135,8 +135,8 @@ fun <S : Comparable<S>> Histogram<S>.add(value: Frame<Point<S>>) {
             break
         }
     }
-    this.bins.forEach { bin ->
-        bin.setWeight(bin.getFrameSum().toDouble() / this.getFrameSum())
+    this.bins.filter { it.getFrameSum() != 0 }.forEach { bin ->
+        bin.setWeight(bin.getFrameSum().toDouble() / this.getFrameSum().toDouble())
     }
 }
 
@@ -198,8 +198,11 @@ class Bin<S : Comparable<S>>(
 @OptIn(ExperimentalAtomicApi::class)
 fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     xBorder = this.xBorder,
+    yBorder = this.yBorder,
+    zBorder = this.zBorder,
     frameSum = this.getFrameSum(),
     weight = this.weight,
+    type = this.type,
     _frameSum = AtomicInt(this.getFrameSum())
 )
 
@@ -212,7 +215,7 @@ fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Point<S>): Boolean {
     if (this.zBorder != null) {
         frameInBorder = checkBorder(this.zBorder, frame.z!!)
     }
-    if (this.yBorder != null) {
+    if (frameInBorder && this.yBorder != null) {
         frameInBorder = checkBorder(this.yBorder, frame.y!!)
     }
     if (frameInBorder) {
@@ -231,8 +234,8 @@ fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =
     (chunk.histogram.bins.first().xBorder.from >= this.xBorder.from && chunk.histogram.bins.last().xBorder.to <= this.xBorder.to) &&
-            (this.yBorder == null || chunk.histogram.bins.first().yBorder!!.from >= this.yBorder!!.from && chunk.histogram.bins.last().yBorder!!.to <= this.yBorder.to) &&
-            (this.zBorder == null || chunk.histogram.bins.first().zBorder!!.from >= this.zBorder!!.from && chunk.histogram.bins.last().zBorder!!.to <= this.zBorder.to)
+            (this.yBorder == null || chunk.histogram.bins.first().yBorder!!.from >= this.yBorder.from && chunk.histogram.bins.last().yBorder!!.to <= this.yBorder.to) &&
+            (this.zBorder == null || chunk.histogram.bins.first().zBorder!!.from >= this.zBorder.from && chunk.histogram.bins.last().zBorder!!.to <= this.zBorder.to)
 
 fun <S : Comparable<S>> Bin<S>.chunkLeftSideInBorder(chunk: Chunk<S>): Boolean =
     (chunk.histogram.bins.first().xBorder.from < this.xBorder.to && chunk.histogram.bins.last().xBorder.to > this.xBorder.to) &&

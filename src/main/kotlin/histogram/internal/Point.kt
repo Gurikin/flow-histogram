@@ -12,7 +12,7 @@ class Point<S : Comparable<S>>(
     val x: S,
     val y: S? = null,
     val z: S? = null,
-) : IPoint<S> {
+) : IPoint<S>, Comparable<Point<S>> {
     init {
         if (z != null && y == null) {
             throw IllegalStateException("Possible combinations: [x], [x,y], [x,y,z]. Combination of coordinates [x,z] not allow")

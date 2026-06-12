@@ -1,13 +1,8 @@
 package org.gurikin.histogram.num_histogram
 
+import org.gurikin.histogram.internal.*
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
-import org.gurikin.histogram.internal.Bin
-import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Histogram
-import org.gurikin.histogram.internal.HistogramBuilder
-import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.calcBinsCount
 
 /**
  * Implementation of [HistogramBuilder] for [Int] type
@@ -30,14 +25,18 @@ class Int3DHistogramBuilder : HistogramBuilder<Int> {
         border: Border<Int>,
         binsCount: Int
     ): Histogram<Int> {
-        var remOfDiv = reminderOfDivision(border, binsCount)
+        val remOfDiv = reminderOfDivision(border, binsCount)
         var xRemOfDiv = remOfDiv
         var yRemOfDiv = remOfDiv
         var zRemOfDiv = remOfDiv
         val interval = abs(border.to.value() - remOfDiv - border.from.value() + 1)
         val step = interval / binsCount
         val bins: MutableList<Bin<Int>> = mutableListOf()
-        var currBin = Bin(Border(border.from, border.from + step - 1), Border(border.from, border.from + step - 1), Border(border.from, border.from + step - 1))
+        var currBin = Bin(
+            Border(border.from, border.from + step - 1),
+            Border(border.from, border.from + step - 1),
+            Border(border.from, border.from + step - 1)
+        )
         for (x in (0..<binsCount)) {
             val xBinFrom = currBin.xBorder.from
             val xCorrectionToBin = xRemOfDiv.addCorrectionToBin()
@@ -58,7 +57,11 @@ class Int3DHistogramBuilder : HistogramBuilder<Int> {
                     val zBorder = Border(zBinFrom, zBinTo)
                     val bin = Bin(xBorder, yBorder, zBorder)
                     bins.add(bin)
-                    currBin = Bin(Border(bin.xBorder.to + 1, bin.xBorder.to + step), Border(bin.yBorder!!.to + 1, bin.yBorder.to + step), Border(bin.zBorder!!.to + 1, bin.zBorder.to + step))
+                    currBin = Bin(
+                        Border(bin.xBorder.to + 1, bin.xBorder.to + step),
+                        Border(bin.yBorder!!.to + 1, bin.yBorder.to + step),
+                        Border(bin.zBorder!!.to + 1, bin.zBorder.to + step)
+                    )
                 }
             }
         }

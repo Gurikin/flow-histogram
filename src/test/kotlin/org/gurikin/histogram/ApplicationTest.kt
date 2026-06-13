@@ -1,4 +1,4 @@
-package histogram
+package org.gurikin.histogram
 
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -12,7 +12,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkAggregator
@@ -22,14 +21,13 @@ import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.internal.Point
-import org.gurikin.histogram.internal.PointFrame
 import org.gurikin.histogram.internal.frameInBorder
 import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
 import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.Assertions.assertTrue
-import util.TestPredictableFlowGenerator
+import org.gurikin.util.TestPredictableFlowGenerator
 
 class ApplicationTest {
     @Test

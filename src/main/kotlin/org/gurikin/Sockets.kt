@@ -7,8 +7,6 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.gurikin.EchoApp.Client
-import org.gurikin.EchoApp.Server
 import java.io.InputStream
 import java.util.*
 

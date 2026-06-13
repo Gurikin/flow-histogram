@@ -5,7 +5,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 
-private val logger = LoggerFactory.getLogger("org.gurikin.utils.watchDir")
+private val logger = LoggerFactory.getLogger("org.gurikin.watchDir")
 
 fun watchDir(dirPath: Path, executor: () -> Unit) {
     val watchService = FileSystems.getDefault().newWatchService()

@@ -1,4 +1,4 @@
-package histogram.num_histogram
+package org.gurikin.histogram.num_histogram
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

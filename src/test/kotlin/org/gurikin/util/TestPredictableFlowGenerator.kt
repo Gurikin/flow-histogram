@@ -1,4 +1,4 @@
-package util
+package org.gurikin.util
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope

@@ -1,28 +1,20 @@
 package org.gurikin.histogram.internal
 
-import gurikin.histogram.internal.Borderimport gurikin.histogram.internal.Chunk
-import gurikin.histogram.internal.ChunkIdimport gurikin.histogram.internal.DefaultChunkQueue
-import gurikin.histogram.internal.IntFrameimport kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Chunk
-import org.gurikin.histogram.internal.ChunkId
-import org.gurikin.histogram.internal.DefaultChunkQueue
-import org.gurikin.histogram.internal.Frame
-import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
-import org.junit.Before
-import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.BeforeEach
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class DefaultChunkQueueTest {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val queue = DefaultChunkQueue(scope)
     private lateinit var chunk: Chunk<Int>
 
-    @Before
+    @BeforeEach
     fun setUp() {
         val builder = IntHistogramBuilder()
         val border: Border<Int> = Border(IntFrame(0), IntFrame(100))
@@ -32,10 +24,14 @@ class DefaultChunkQueueTest {
 
     @Test
     fun addAndPoll() = runBlocking {
-        assertDoesNotThrow("Should not throw an exception") {
+        var expEx: RuntimeException? = null
+        try {
             queue.add(chunk.chunkId)
             val actualChunkId = queue.poll()
             assertEquals(chunk.chunkId, actualChunkId)
+        } catch (ex: RuntimeException) {
+            expEx = ex
         }
+        assertNull(expEx)
     }
 }

@@ -6,9 +6,6 @@ plugins {
     id("application")
 }
 
-group = "org.gurikin"
-version = "0.0.1"
-
 application {
     mainClass = "org.gurikin.WeightDisplayApp"
 }
@@ -27,11 +24,14 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.config.yaml)
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
-    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlin.test)
 }
 
 javafx {
     version = "17"
     modules = listOf("javafx.controls")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

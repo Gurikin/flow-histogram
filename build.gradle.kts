@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import kotlin.collections.plus
 
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false

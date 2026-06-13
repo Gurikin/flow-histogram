@@ -1,6 +1,5 @@
 package org.gurikin.util
 
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +8,7 @@ import org.gurikin.histogram.SourceFlowGenerator
 import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.Point
 import org.gurikin.histogram.internal.PointFrame
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Test flow generator with predictable weights of each bin.

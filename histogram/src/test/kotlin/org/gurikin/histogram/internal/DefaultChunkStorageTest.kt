@@ -1,28 +1,20 @@
 package org.gurikin.histogram.internal
 
-import gurikin.histogram.internal.Borderimport gurikin.histogram.internal.Chunk
-import gurikin.histogram.internal.ChunkIdimport gurikin.histogram.internal.DefaultChunkStorage
-import gurikin.histogram.internal.IntFrameimport kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import org.gurikin.histogram.internal.Border
-import org.gurikin.histogram.internal.Chunk
-import org.gurikin.histogram.internal.ChunkId
-import org.gurikin.histogram.internal.DefaultChunkStorage
-import org.gurikin.histogram.internal.Frame
-import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
-import org.junit.Before
+import org.junit.jupiter.api.BeforeEach
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class DefaultChunkStorageTest {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val storage = DefaultChunkStorage<Int>(scope)
     private lateinit var chunk: Chunk<Int>
 
-    @Before
+    @BeforeEach
     fun setUp() {
         val builder = IntHistogramBuilder()
         val border: Border<Int> = Border(IntFrame(0), IntFrame(100))

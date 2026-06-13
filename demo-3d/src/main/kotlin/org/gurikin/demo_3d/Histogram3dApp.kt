@@ -10,6 +10,7 @@ import javafx.stage.Stage
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.gurikin.histogram.internal.*
+import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import java.io.File
@@ -149,7 +150,7 @@ suspend fun main(args: Array<String>) {
 }
 
 fun launchHistogrammator() = runBlocking {
-    val histogramBuilder = IntHistogramBuilder()
+    val histogramBuilder = Int3DHistogramBuilder()
     val configuration = HistogramConfiguration(
         sourceType = HistogramSourceTypesEnum.INT,
         histogramBorder = Border(

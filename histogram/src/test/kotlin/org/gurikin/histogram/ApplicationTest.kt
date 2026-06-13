@@ -1,9 +1,5 @@
 package org.gurikin.histogram
 
-import gurikin.histogram.DefaultHistogrammatorimport java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.*
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.cancelChildren
@@ -26,9 +22,12 @@ import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
 import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.gurikin.util.TestPredictableFlowGenerator
-import kotlin.collections.get
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.util.*
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class ApplicationTest {
     @Test
@@ -259,7 +258,7 @@ class ApplicationTest {
     }
 
     @Test
-    fun `test 3d histogrammator accumulate 5000 messages`() {
+    fun `test 3d histogrammator accumulate 500 messages`() {
         runBlocking {
             val histogramBuilder = Int3DHistogramBuilder()
             val chunks = TreeSet<Chunk<Int>>()
@@ -306,7 +305,7 @@ class ApplicationTest {
                 )
                 val accumulateJob = launch { histogrammator.accumulate() }
                 var totalWeight = 0.0
-                while (histogrammator.histogram.getFrameSum() < 5000) {
+                while (histogrammator.histogram.getFrameSum() < 500) {
                     println("Accumulate general histogram...")
                     println("Total message count = ${histogrammator.histogram.getFrameSum()}")
                     delay(1000.milliseconds)

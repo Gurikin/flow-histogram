@@ -28,8 +28,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.config.yaml)
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
-    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlin.test)
 }
 
 javafx {

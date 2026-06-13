@@ -10,6 +10,7 @@ import javafx.stage.Stage
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.gurikin.histogram.internal.*
+import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
 import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
@@ -167,7 +168,7 @@ fun launchHistogrammator() = runBlocking {
     val chunkQueue = DefaultChunkQueue(this)
     val expectedMessageCnt = 1000
     val sourceFlowGenerator =
-        IntFlowGenerator(0..<999, expectedMessageCnt)
+        Int3DFlowGenerator(0..<999, expectedMessageCnt)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,

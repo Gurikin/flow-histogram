@@ -171,7 +171,7 @@ class Bin<S : Comparable<S>>(
     val yBorder: Border<S>? = null,
     val zBorder: Border<S>? = null,
     private var frameSum: Int = 0,
-    internal var weight: Double = 0.0,
+    var weight: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
     val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,

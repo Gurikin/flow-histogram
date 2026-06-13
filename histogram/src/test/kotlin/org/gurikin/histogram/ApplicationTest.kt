@@ -1,6 +1,6 @@
 package org.gurikin.histogram
 
-import java.math.BigDecimal
+import gurikin.histogram.DefaultHistogrammatorimport java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 import kotlin.test.Test
@@ -28,6 +28,7 @@ import org.gurikin.histogram.num_histogram.IntFlowGenerator
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.gurikin.util.TestPredictableFlowGenerator
+import kotlin.collections.get
 
 class ApplicationTest {
     @Test
@@ -329,8 +330,8 @@ class ApplicationTest {
             }
         }
     }
-}
 
-private suspend fun aggregateChunk(aggregator: ChunkAggregator<Int>) {
-    aggregator.collectData()
+    private suspend fun aggregateChunk(aggregator: ChunkAggregator<Int>) {
+        aggregator.collectData()
+    }
 }

@@ -1,5 +1,6 @@
 package org.gurikin.histogram.num_histogram
 
+import gurikin.histogram.num_histogram.IntHistogramBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
@@ -13,6 +14,8 @@ import org.gurikin.histogram.internal.add
 import org.gurikin.histogram.internal.borderIntLength
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.jupiter.api.DisplayName
+import kotlin.collections.get
+import kotlin.text.get
 
 class IntHistogramBuilderTest {
     @Test

@@ -1,23 +1,25 @@
 package org.gurikin.histogram.internal
 
-import kotlin.test.Test
+import gurikin.histogram.internal.Borderimport gurikin.histogram.internal.Chunk
+import gurikin.histogram.internal.ChunkIdimport gurikin.histogram.internal.DefaultChunkStorage
+import gurikin.histogram.internal.IntFrameimport kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
-import org.gurikin.histogram.internal.DefaultChunkQueue
+import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Frame
 import org.gurikin.histogram.internal.IntFrame
 import org.gurikin.histogram.num_histogram.IntHistogramBuilder
 import org.junit.Before
-import org.junit.jupiter.api.assertDoesNotThrow
 
-class DefaultChunkQueueTest {
+class DefaultChunkStorageTest {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val queue = DefaultChunkQueue(scope)
+    private val storage = DefaultChunkStorage<Int>(scope)
     private lateinit var chunk: Chunk<Int>
 
     @Before
@@ -29,11 +31,22 @@ class DefaultChunkQueueTest {
     }
 
     @Test
-    fun addAndPoll() = runBlocking {
-        assertDoesNotThrow("Should not throw an exception") {
-            queue.add(chunk.chunkId)
-            val actualChunkId = queue.poll()
+    fun storeChunk() = runBlocking {
+        val actualChunkId = storage.storeChunk(chunk)
+        assertEquals(chunk.chunkId, actualChunkId)
+    }
+
+    @Test
+    fun getChunk() {
+        runBlocking {
+            val actualChunkId = scope.async {
+                storage.storeChunk(chunk)
+            }.await()
             assertEquals(chunk.chunkId, actualChunkId)
+            val actualChunk = scope.async {
+                storage.getChunk(chunk.chunkId)
+            }.await()
+            assertEquals(chunk, actualChunk)
         }
     }
 }

@@ -10,7 +10,7 @@ group = "org.gurikin"
 version = "0.0.1"
 
 application {
-    mainClass = "org.gurikin.WeightDisplayApp"
+    mainClass = "org.gurikin.Histogram3dApp"
 }
 
 kotlin {
@@ -18,6 +18,7 @@ kotlin {
 }
 
 dependencies {
+    api(projects.histogram)
     implementation("org.openjfx:javafx-controls:17")
     implementation("org.openjfx:javafx-fxml:17")
     implementation(libs.kotlinx.serialization.json)

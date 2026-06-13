@@ -63,7 +63,17 @@ class Int3DHistogramBuilder : HistogramBuilder<Int> {
                         Border(bin.zBorder!!.to + 1, bin.zBorder.to + step)
                     )
                 }
+                currBin = Bin(
+                    currBin.xBorder,
+                    currBin.yBorder,
+                    Border(border.from, border.from + step - 1)
+                )
             }
+            currBin = Bin(
+                currBin.xBorder,
+                Border(border.from, border.from + step - 1),
+                currBin.zBorder
+            )
         }
         return Histogram(bins = bins, totalFrameSum = 0)
     }

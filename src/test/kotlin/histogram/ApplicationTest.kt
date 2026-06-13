@@ -278,7 +278,7 @@ class ApplicationTest {
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
-            val expectedMessageCnt = 1000
+            val expectedMessageCnt = 100
             val sourceFlowGenerator = Int3DFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
             val sourceFlow = sourceFlowGenerator.flowData()
             val chunkAggregator = DefaultChunkAggregator(

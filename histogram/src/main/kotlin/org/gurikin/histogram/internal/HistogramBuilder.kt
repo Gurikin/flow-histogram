@@ -213,10 +213,10 @@ fun <S : Comparable<S>> Bin<S>.frameInBorder(frame: Point<S>): Boolean {
 
     var frameInBorder: Boolean = true
     if (this.zBorder != null) {
-        frameInBorder = checkBorder(this.zBorder, frame.z!!)
+        frameInBorder = frame.z?.let { checkBorder(this.zBorder, it) } ?: false
     }
     if (frameInBorder && this.yBorder != null) {
-        frameInBorder = checkBorder(this.yBorder, frame.y!!)
+        frameInBorder = frame.y?.let { checkBorder(this.yBorder, it) } ?: false
     }
     if (frameInBorder) {
         frameInBorder = checkBorder(this.xBorder, frame.x)

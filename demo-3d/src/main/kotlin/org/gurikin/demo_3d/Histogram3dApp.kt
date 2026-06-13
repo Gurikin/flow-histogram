@@ -161,7 +161,7 @@ fun launchHistogrammator() = runBlocking {
         minStep = 1,
         valueList = null
     )
-    val chunks = TreeSet<org.gurikin.histogram.internal.Chunk<Int>>()
+    val chunks = TreeSet<Chunk<Int>>()
     chunks.addAll(configuration.generateChunks(histogramBuilder))
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)

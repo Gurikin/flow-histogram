@@ -6,9 +6,6 @@ plugins {
     id("application")
 }
 
-group = "org.gurikin"
-version = "0.0.1"
-
 application {
     mainClass = "org.gurikin.Histogram3dApp"
 }

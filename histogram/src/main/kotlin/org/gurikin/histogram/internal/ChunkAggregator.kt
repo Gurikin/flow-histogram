@@ -60,16 +60,16 @@ data class Chunk<S : Comparable<S>>(
 
     fun frameInChunk(frame: Frame<Point<S>>): Boolean {
         val firstXCompare = this.histogram.bins.first().xBorder.from.compareTo(frame.value().x)
-        val firstYCompare = this.histogram.bins.first().yBorder?.from?.compareTo(frame.value().y!!)
-        val firstZCompare = this.histogram.bins.first().zBorder?.from?.compareTo(frame.value().z!!)
+        val firstYCompare = frame.value().y?.let { this.histogram.bins.first().yBorder?.from?.compareTo(it) }
+        val firstZCompare = frame.value().z?.let { this.histogram.bins.first().zBorder?.from?.compareTo(it) }
 
         val firstCompare = (firstZCompare == null || firstZCompare == -1 || firstZCompare == 0) &&
                 (firstYCompare == null || firstYCompare == -1 || firstYCompare == 0) &&
                 (firstXCompare == -1 || firstXCompare == 0)
 
         val lastXCompare = this.histogram.bins.last().xBorder.from.compareTo(frame.value().x)
-        val lastYCompare = this.histogram.bins.last().yBorder?.from?.compareTo(frame.value().y!!)
-        val lastZCompare = this.histogram.bins.last().zBorder?.from?.compareTo(frame.value().z!!)
+        val lastYCompare = frame.value().y?.let { this.histogram.bins.last().yBorder?.from?.compareTo(it) }
+        val lastZCompare = frame.value().z?.let { this.histogram.bins.last().zBorder?.from?.compareTo(it) }
 
         val lastCompare = (lastZCompare == null || lastZCompare == 1 || lastZCompare == 0) &&
                 (lastYCompare == null || lastYCompare == 1 || lastYCompare == 0) &&

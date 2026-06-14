@@ -30,14 +30,14 @@ class Int3DFlowGenerator(
                             z = z.toInt()
                         )
                     )
-                    println("[FlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
+//                    println("[Int3DFlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
                     emit(frame)
                 } else {
                     val x = r.nextInt(range.first, range.last)
                     val y = r.nextInt(range.first, range.last)
                     val z = r.nextInt(range.first, range.last)
                     val frame = PointFrame(Point(x = x, y = y, z = z))
-                    println("[FlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
+//                    println("[Int3DFlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
                     emit(frame)
                 }
 

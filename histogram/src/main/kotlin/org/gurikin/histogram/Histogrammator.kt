@@ -44,9 +44,12 @@ class DefaultHistogrammator<S : Comparable<S>>(
 
     override suspend fun accumulate() {
         scope.launch {
+//            var messagesCnt = 0
             while (true) {
                 val chunkId = chunkQueue.poll()
                 val chunk: Chunk<S> = chunkStorage.getChunk(chunkId)
+//                messagesCnt += chunk.histogram.getFrameSum()
+//                println("[Histogrammator] messageCnt from Chunks: $messagesCnt")
 
                 for (bin in histogram.bins) {
                     when {
@@ -58,15 +61,8 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 }
                 histogram.covariance += chunk.histogram.covariance
                 chunkStorage.remove(chunkId)
+//                println("[Histogrammator] messageCnt from Histogrammator: ${histogram.getFrameSum()}")
                 delay(accumulateDelay)
-            }
-        }
-        scope.launch {
-            while (scope.isActive) {
-                for (bin in histogram.bins) {
-                    refreshBin(bin)
-                }
-                delay(refreshBinsDelay)
             }
         }
     }

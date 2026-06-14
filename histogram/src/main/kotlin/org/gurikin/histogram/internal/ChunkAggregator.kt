@@ -104,7 +104,7 @@ class DefaultChunkAggregator<S : Comparable<S>>(
                 for (chunk in chunks) {
                     if (chunk.frameInChunk(frame!!)) {
                         chunk.histogram.add(frame)
-                        println("[ChunkAggregator] Frame: ${frame.value()}")
+//                        println("[ChunkAggregator] Frame: ${frame.value()}")
                         break
                     }
                 }
@@ -119,8 +119,8 @@ class DefaultChunkAggregator<S : Comparable<S>>(
 
     private suspend fun sendChunks() {
         val filteredChunks = chunks.filter { it.histogram.getFrameSum() > 0 }
-        val chunkTotalFrames = chunks.sumOf { it.histogram.getFrameSum() }
-        println("[ChunkAggregator] ChunksTotalFrames: $chunkTotalFrames")
+//        val chunkTotalFrames = chunks.sumOf { it.histogram.getFrameSum() }
+//        println("[ChunkAggregator] ChunksTotalFrames: $chunkTotalFrames")
 
         filteredChunks.forEach { chunk ->
             val chunkCopy = chunk.copy()

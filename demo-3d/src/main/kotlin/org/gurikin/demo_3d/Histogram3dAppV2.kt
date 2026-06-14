@@ -143,35 +143,35 @@ class MainApp : Application() {
         val range = 1200  // подберите под свои данные
         val coordStep = 50
 
-//        // Линии по оси X (вдоль X, на уровне Y=0, Z=0)
-//        for (x in -range..range step coordStep) {
-//            val line = Box(1.0, range.toDouble() * 2, 1.0)
-//            line.material = PhongMaterial(lineColor)
-//            line.translateX = x.toDouble()
-//            line.translateY = 0.0//range / 2.0
-//            line.translateZ = 0.0
-//            gridGroup.children.add(line)
-//        }
-//
-//        // Линии по оси Y (вдоль Y, на уровне Y=0, Z=0)
-//        for (y in -range..range step coordStep) {
-//            val line = Box(1.0, 1.0, range.toDouble() * 2)
-//            line.material = PhongMaterial(lineColor)
-//            line.translateX = 0.0
-//            line.translateY = y.toDouble()
-//            line.translateZ = 0.0//-range / 2.0
-//            gridGroup.children.add(line)
-//        }
-//
-//        // Линии по оси Z
-//        for (z in -range..range step coordStep) {
-//            val line = Box(range.toDouble() * 2, 1.0, 1.0)
-//            line.material = PhongMaterial(lineColor)
-//            line.translateX = 0.0//range / 2.0
-//            line.translateY = 0.0
-//            line.translateZ = z.toDouble()
-//            gridGroup.children.add(line)
-//        }
+        // Линии по оси X (вдоль X, на уровне Y=0, Z=0)
+        for (x in -range..range step coordStep) {
+            val line = Box(1.0, range.toDouble() * 2, 1.0)
+            line.material = PhongMaterial(lineColor)
+            line.translateX = x.toDouble()
+            line.translateY = 0.0//range / 2.0
+            line.translateZ = 0.0
+            gridGroup.children.add(line)
+        }
+
+        // Линии по оси Y (вдоль Y, на уровне Y=0, Z=0)
+        for (y in -range..range step coordStep) {
+            val line = Box(1.0, 1.0, range.toDouble() * 2)
+            line.material = PhongMaterial(lineColor)
+            line.translateX = 0.0
+            line.translateY = y.toDouble()
+            line.translateZ = 0.0//-range / 2.0
+            gridGroup.children.add(line)
+        }
+
+        // Линии по оси Z
+        for (z in -range..range step coordStep) {
+            val line = Box(range.toDouble() * 2, 1.0, 1.0)
+            line.material = PhongMaterial(lineColor)
+            line.translateX = 0.0//range / 2.0
+            line.translateY = 0.0
+            line.translateZ = z.toDouble()
+            gridGroup.children.add(line)
+        }
 
         // Оси с толстыми линиями и стрелками (упрощённо)
         val axisX = Box(range.toDouble() * 2, 4.0, 4.0)
@@ -382,7 +382,7 @@ class MainApp : Application() {
         val content = file.readText()
         val histogram = json.decodeFromString<Histogram<Int>>(content)
         val validBins = histogram.bins.filter {
-            it.weight > 0.0
+            it.weight > 0.005
         }
 
         if (validBins.isEmpty()) {
@@ -498,7 +498,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
         chunkStorage = chunkStorage,
         chunkQueue = chunkQueue,
         scope = this,
-        queueSendTimeout = 100.milliseconds,
+        queueSendTimeout = 200.milliseconds,
     )
 
     this.launch { chunkAggregator.collectData() }
@@ -523,6 +523,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
             histogram = histogram,
             chunkQueue = chunkQueue,
             chunkStorage = chunkStorage,
+            accumulateDelay = 50.milliseconds,
             scope = this
         )
         launch {
@@ -539,7 +540,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
             while (histogrammator.histogram.getFrameSum() < 200000) {
                 println("Accumulate general histogram...")
                 println("Total message count = ${histogrammator.histogram.getFrameSum()}")
-                delay(500.milliseconds)
+                delay(1000.milliseconds)
                 runCatching { file.writeText(Json.encodeToString(histogrammator.histogram)) }
             }
         }

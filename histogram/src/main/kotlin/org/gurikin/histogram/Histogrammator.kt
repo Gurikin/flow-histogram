@@ -33,14 +33,14 @@ interface Histogrammator<S : Comparable<S>> {
 
 @Serializable
 class DefaultHistogrammator<S : Comparable<S>>(
-    val histogram: org.gurikin.histogram.internal.Histogram<S>,
-    private val chunkQueue: org.gurikin.histogram.internal.ChunkQueue,
-    private val chunkStorage: org.gurikin.histogram.internal.ChunkStorage<S>,
+    val histogram: Histogram<S>,
+    private val chunkQueue: ChunkQueue,
+    private val chunkStorage: ChunkStorage<S>,
     private val scope: CoroutineScope,
     private val accumulateDelay: Duration = 10.milliseconds,
     private val refreshBinsDelay: Duration = 100.milliseconds,
     private val calcAvgDelay: Duration = 2000.milliseconds,
-) : org.gurikin.histogram.Histogrammator<S> {
+) : Histogrammator<S> {
 
     override suspend fun accumulate() {
         scope.launch {

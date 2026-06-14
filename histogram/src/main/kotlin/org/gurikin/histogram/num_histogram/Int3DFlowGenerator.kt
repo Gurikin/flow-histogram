@@ -25,12 +25,16 @@ class Int3DFlowGenerator(
             repeat(messagesCount) {
                 if (isGaussian) {
                     val x = Random.nextInt(range)
-                    val gaus: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
+                    val y = Random.nextInt(range)
+                    val z = Random.nextInt(range)
+                    val gausX: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
+                    val gausY: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((y.toDouble() / messagesCount).pow(2))
+                    val gausZ: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((z.toDouble() / messagesCount).pow(2))
                     val frame = PointFrame(
                         Point(
-                            x = (gaus * messagesCount).toInt(),
-                            y = (gaus * messagesCount).toInt(),
-                            z = (gaus * messagesCount).toInt()
+                            x = (gausX * messagesCount).toInt(),
+                            y = (gausY * messagesCount).toInt(),
+                            z = (gausZ * messagesCount).toInt()
                         )
                     )
                     println("[FlowGenerator] Frame = $frame")

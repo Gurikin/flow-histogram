@@ -104,7 +104,7 @@ class WeightDisplayApp : Application() {
 
             if (weights.isNotEmpty()) {
                 Platform.runLater {
-                    updateUI(weights, avg, root)
+                    updateUI(weights, avg.varX, root)
                 }
             } else {
                 println("No weights found in bins")

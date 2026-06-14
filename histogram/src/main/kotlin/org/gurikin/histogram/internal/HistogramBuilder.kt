@@ -1,8 +1,5 @@
 package org.gurikin.histogram.internal
 
-import kotlin.concurrent.atomics.AtomicInt
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.math.abs
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -11,6 +8,9 @@ import org.gurikin.histogram.internal.HistogramSourceTypesEnum.DOUBLE
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.FLOAT
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.INT
 import org.gurikin.histogram.internal.HistogramSourceTypesEnum.LONG
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.math.abs
 
 /**
  * API для работы непосредственно с гистограммами (построение, определение бина, аккумуляция данных)
@@ -29,7 +29,12 @@ interface HistogramBuilder<S : Comparable<S>> {
      * @param binsCount histogram bins count
      * @return
      */
-    fun initHistogram(xBorder: Border<S>, binsCount: Int, yBorder: Border<S>? = null, zBorder: Border<S>? = null): Histogram<S>
+    fun initHistogram(
+        xBorder: Border<S>,
+        binsCount: Int,
+        yBorder: Border<S>? = null,
+        zBorder: Border<S>? = null
+    ): Histogram<S>
 
     /**
      * Init a histogram with define binsCount by Sturges formula
@@ -56,16 +61,16 @@ interface HistogramBuilder<S : Comparable<S>> {
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
 
-class Histogram<S : Comparable<S>> (
+class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
-    var average: Double = 0.0,
+    var average: AvgPoint = AvgPoint(),
     @OptIn(ExperimentalSerializationApi::class)
     @EncodeDefault
     var covariance: CovarianceMatrix3D = CovarianceMatrix3D(),
     @Transient
     private val _totalFrameSum: AtomicInt = AtomicInt(0),
-    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
+    val type: HistogramSourceTypesEnum = INT,
 ) {
 
     fun initFrameSum() {
@@ -88,38 +93,43 @@ class Histogram<S : Comparable<S>> (
     @Suppress("UNCHECKED_CAST")
     fun refreshAvg() {
         this.bins.filter { it.getFrameSum() != 0 }.forEach { bin ->
-            val binAvg = when (bin.xBorder.type) {
-                HistogramSourceTypesEnum.INT -> avg(
-                    (bin.xBorder as Border<Int>).from,
-                    bin.xBorder.to,
-                    bin.getFrameSum(),
-                    this.getFrameSum()
-                )
+            fun getBorderAvg(border: Border<S>) =
+                when (border.type) {
+                    INT -> avg(
+                        (border as Border<Int>).from,
+                        border.to,
+                        bin.getFrameSum(),
+                        this.getFrameSum()
+                    )
 
-                HistogramSourceTypesEnum.LONG -> avg(
-                    (bin.xBorder as Border<Long>).from,
-                    bin.xBorder.to,
-                    bin.getFrameSum(),
-                    this.getFrameSum()
-                )
+                    LONG -> avg(
+                        (border as Border<Long>).from,
+                        border.to,
+                        bin.getFrameSum(),
+                        this.getFrameSum()
+                    )
 
-                HistogramSourceTypesEnum.FLOAT -> avg(
-                    (bin.xBorder as Border<Float>).from,
-                    bin.xBorder.to,
-                    bin.getFrameSum(),
-                    this.getFrameSum()
-                )
+                    FLOAT -> avg(
+                        (border as Border<Float>).from,
+                        border.to,
+                        bin.getFrameSum(),
+                        this.getFrameSum()
+                    )
 
-                HistogramSourceTypesEnum.DOUBLE -> avg(
-                    (bin.xBorder as Border<Double>).from,
-                    bin.xBorder.to,
-                    bin.getFrameSum(),
-                    this.getFrameSum()
-                )
+                    DOUBLE -> avg(
+                        (border as Border<Double>).from,
+                        border.to,
+                        bin.getFrameSum(),
+                        this.getFrameSum()
+                    )
 
-                else -> throw UnsupportedOperationException("Unknown type for frame ${bin.xBorder.from::class}")
-            }.toDouble()
-            this.average += binAvg
+                    else -> throw UnsupportedOperationException("Unknown type for frame ${bin.xBorder.from::class}")
+                }.toDouble()
+            val xMean = getBorderAvg(bin.xBorder)
+            val yMean = bin.yBorder?.let { getBorderAvg(it) }
+            val zMean = bin.zBorder?.let { getBorderAvg(it) }
+
+            this.average = AvgPoint(xMean, yMean, zMean)
         }
     }
 }
@@ -144,7 +154,7 @@ fun <S : Comparable<S>> Histogram<S>.clear() {
         it.weight = 0.0
         it.initFrameSum()
     }
-    this.average = 0.0
+    this.average = AvgPoint()
     this.initFrameSum()
 }
 
@@ -172,7 +182,7 @@ class Bin<S : Comparable<S>>(
     var weight: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
-    val type: HistogramSourceTypesEnum = HistogramSourceTypesEnum.INT,
+    val type: HistogramSourceTypesEnum = INT,
 ) {
 
     fun initFrameSum() {

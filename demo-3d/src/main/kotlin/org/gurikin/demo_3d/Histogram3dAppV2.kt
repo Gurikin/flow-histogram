@@ -101,9 +101,9 @@ class MainApp : Application() {
             isVisible = true
         }
         val statsBox = VBox(statsLabel).apply {
-            alignment = Pos.TOP_RIGHT
-            translateX = 0.5
-            translateY = 0.5
+            alignment = Pos.TOP_LEFT
+            translateX = 1.0
+            translateY = 1.0
         }
         // Добавляем поверх subScene
         root.children.add(statsBox)
@@ -247,6 +247,11 @@ class MainApp : Application() {
         covXY = ${"%.2f".format(covXY)}  |  corrXY = ${"%.3f".format(corrXY)}
         covXZ = ${"%.2f".format(covXZ)}  |  corrXZ = ${"%.3f".format(corrXZ)}
         covYZ = ${"%.2f".format(covYZ)}  |  corrYZ = ${"%.3f".format(corrYZ)}
+        
+        Average:
+        X = ${"%.4f".format(histogram.average.varX)}
+        Y = ${"%.4f".format(histogram.average.varY)}
+        Z = ${"%.4f".format(histogram.average.varZ)}
     """.trimIndent()
         Platform.runLater { statsLabel.text = info }
     }
@@ -382,7 +387,7 @@ class MainApp : Application() {
         val content = file.readText()
         val histogram = json.decodeFromString<Histogram<Int>>(content)
         val validBins = histogram.bins.filter {
-            it.weight > 0.005
+            it.weight > 0.00
         }
 
         if (validBins.isEmpty()) {
@@ -394,7 +399,7 @@ class MainApp : Application() {
         val maxWeight = validBins.maxOf { it.weight }
         // базовый радиус (минимальный) и множитель
         val minRadius = 1.0
-        val maxRadius = 100.0
+        val maxRadius = 125.0
 
         // удаляем старые шары
         rootGroup.children.clear()
@@ -488,9 +493,9 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
-    val expectedMessageCnt = 250
+    val expectedMessageCnt = 1000
     val sourceFlowGenerator =
-        Int3DFlowGenerator(-1000..<1000, expectedMessageCnt, true)
+        Int3DFlowGenerator(-5000..<-2000, expectedMessageCnt, true)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,

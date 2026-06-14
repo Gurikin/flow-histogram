@@ -253,13 +253,13 @@ data class PointFrame(val value: Point<Int>) : Frame<Point<Int>>() {
 }
 
 fun avg(left: Frame<Int>, right: Frame<Int>, binSum: Int, totalSum: Int): Int =
-    ((left + right).value() / 2) * binSum / totalSum
+    (((left + right).value() / 2) * binSum / totalSum)
 
 fun avg(left: Frame<Long>, right: Frame<Long>, binSum: Int, totalSum: Int): Long =
-    ((left + right).value() / 2) * binSum / totalSum
+    (((left + right).value() / 2) * binSum / totalSum)
 
 fun avg(left: Frame<Float>, right: Frame<Float>, binSum: Int, totalSum: Int): Float =
-    ((left + right).value() / 2.0f) * binSum / totalSum
+    (((left + right).value() / 2.0f) * binSum / totalSum)
 
 fun avg(left: Frame<Double>, right: Frame<Double>, binSum: Int, totalSum: Int): Double =
     ((left + right).value() / 2.0) * binSum / totalSum

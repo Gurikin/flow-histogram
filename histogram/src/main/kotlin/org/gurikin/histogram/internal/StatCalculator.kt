@@ -76,13 +76,35 @@ data class CovarianceMatrix3D(
     var covYZ: Double = 0.0,
 )
 
+
 operator fun CovarianceMatrix3D.plusAssign(other: CovarianceMatrix3D) {
     this.varX += other.varX
-    this.varY += other.varZ
+    this.varY += other.varY
     this.varZ += other.varZ
     this.covXY += other.covXY
     this.covXZ += other.covXZ
     this.covYZ += other.covYZ
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+data class AvgPoint(
+    @EncodeDefault
+    var varX: Double = 0.0,
+    @EncodeDefault
+    var varY: Double? = 0.0,
+    @EncodeDefault
+    var varZ: Double? = 0.0,
+)
+
+operator fun AvgPoint.plusAssign(other: AvgPoint) {
+    this.varX += other.varX
+    if (this.varY != null) {
+        this.varY = this.varY!!.plus(other.varY ?: 0.0)
+    }
+    if (this.varZ != null) {
+        this.varZ = this.varZ!!.plus(other.varZ ?: 0.0)
+    }
 }
 
 //fun <S : Comparable<S>> Chunk<S>.calcDispersion() {

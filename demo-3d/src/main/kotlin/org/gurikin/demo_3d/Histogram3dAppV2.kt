@@ -102,8 +102,8 @@ class MainApp : Application() {
         }
         val statsBox = VBox(statsLabel).apply {
             alignment = Pos.TOP_RIGHT
-            translateX = 0.1
-            translateY = 0.1
+            translateX = 0.5
+            translateY = 0.5
         }
         // Добавляем поверх subScene
         root.children.add(statsBox)
@@ -382,9 +382,7 @@ class MainApp : Application() {
         val content = file.readText()
         val histogram = json.decodeFromString<Histogram<Int>>(content)
         val validBins = histogram.bins.filter {
-            it.weight > 0.0 &&
-                    it.yBorder?.from?.value() is Int &&
-                    it.zBorder?.from?.value() is Int
+            it.weight > 0.0
         }
 
         if (validBins.isEmpty()) {
@@ -490,7 +488,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
-    val expectedMessageCnt = 10000
+    val expectedMessageCnt = 250
     val sourceFlowGenerator =
         Int3DFlowGenerator(-1000..<1000, expectedMessageCnt, true)
     val sourceFlow = sourceFlowGenerator.flowData()

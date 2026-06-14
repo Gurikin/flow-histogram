@@ -1,7 +1,5 @@
 package org.gurikin.histogram.internal
 
-import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
@@ -170,7 +168,7 @@ class Bin<S : Comparable<S>>(
     val xBorder: Border<S>,
     val yBorder: Border<S>? = null,
     val zBorder: Border<S>? = null,
-    private var frameSum: Int = 0,
+    var draftFrameSum: Int = 0,
     var weight: Double = 0.0,
     @Transient
     private val _frameSum: AtomicInt = AtomicInt(0),
@@ -179,16 +177,16 @@ class Bin<S : Comparable<S>>(
 
     fun initFrameSum() {
         _frameSum.store(0)
-        frameSum = _frameSum.load()
+        draftFrameSum = _frameSum.load()
     }
 
     fun incrementFrameSum(incrementValue: Int) {
-        frameSum = _frameSum.addAndFetch(incrementValue)
+        draftFrameSum = _frameSum.addAndFetch(incrementValue)
     }
 
     fun getFrameSum(): Int {
-        return if (_frameSum.load() == frameSum) {
-            frameSum
+        return if (_frameSum.load() == draftFrameSum) {
+            draftFrameSum
         } else {
             throw RuntimeException("Bin FrameSum unsync")
         }
@@ -200,7 +198,7 @@ fun <S : Comparable<S>> Bin<S>.copy(): Bin<S> = Bin(
     xBorder = this.xBorder,
     yBorder = this.yBorder,
     zBorder = this.zBorder,
-    frameSum = this.getFrameSum(),
+    draftFrameSum = this.getFrameSum(),
     weight = this.weight,
     type = this.type,
     _frameSum = AtomicInt(this.getFrameSum())

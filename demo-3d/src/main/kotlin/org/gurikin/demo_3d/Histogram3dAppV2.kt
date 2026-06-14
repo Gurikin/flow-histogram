@@ -9,8 +9,10 @@ import javafx.scene.PointLight
 import javafx.scene.Scene
 import javafx.scene.SceneAntialiasing
 import javafx.scene.SubScene
+import javafx.scene.control.Label
 import javafx.scene.input.MouseButton
-import javafx.scene.layout.BorderPane
+import javafx.scene.input.MouseEvent
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
@@ -32,6 +34,7 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
 import org.gurikin.demo_3d.utils.watchDir
 import org.gurikin.histogram.DefaultHistogrammator
+import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
@@ -39,10 +42,7 @@ import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
-import org.gurikin.histogram.internal.HistogramConfiguration
-import org.gurikin.histogram.internal.HistogramSourceTypesEnum
 import org.gurikin.histogram.internal.IntFrame
-import org.gurikin.histogram.internal.generateChunks
 import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
 import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
 import java.io.File
@@ -72,14 +72,32 @@ class MainApp : Application() {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    private lateinit var infoLabel: Label
+    private val spheresWithData = mutableListOf<SphereWithData>()
+    private lateinit var primaryStage: Stage
+
+    private data class SphereWithData(
+        val sphere: Sphere,
+        val bin: Bin<*>
+    )
+
     override fun start(primaryStage: Stage) {
+        this.primaryStage = primaryStage
         primaryStage.title = "3D Histogram Viewer"
 
         // корневой элемент
-        val root = BorderPane()
-        rootGroup = Group()
+//        val root = BorderPane()
+//        rootGroup = Group()
         val subScene = createSubScene()
-        root.center = subScene
+//        root.center = subScene
+        val root = StackPane()
+        root.children.add(subScene)
+        infoLabel = Label().apply {
+            style =
+                "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 5; -fx-background-radius: 5;"
+            isVisible = false
+        }
+        root.children.add(infoLabel) // будет поверх сцены
 
         // настройки сцены
         primaryStage.scene = Scene(root, 1024.0, 768.0, true)
@@ -104,35 +122,35 @@ class MainApp : Application() {
         val range = 1200  // подберите под свои данные
         val coordStep = 50
 
-        // Линии по оси X (вдоль X, на уровне Y=0, Z=0)
-        for (x in -range..range step coordStep) {
-            val line = Box(1.0, range.toDouble() * 2, 1.0)
-            line.material = PhongMaterial(lineColor)
-            line.translateX = x.toDouble()
-            line.translateY = 0.0//range / 2.0
-            line.translateZ = 0.0
-            gridGroup.children.add(line)
-        }
-
-        // Линии по оси Y (вдоль Y, на уровне Y=0, Z=0)
-        for (y in -range..range step coordStep) {
-            val line = Box(1.0, 1.0, range.toDouble() * 2)
-            line.material = PhongMaterial(lineColor)
-            line.translateX = 0.0
-            line.translateY = y.toDouble()
-            line.translateZ = 0.0//-range / 2.0
-            gridGroup.children.add(line)
-        }
-
-        // Линии по оси Z
-        for (z in -range..range step coordStep) {
-            val line = Box(range.toDouble() * 2, 1.0, 1.0)
-            line.material = PhongMaterial(lineColor)
-            line.translateX = 0.0//range / 2.0
-            line.translateY = 0.0
-            line.translateZ = z.toDouble()
-            gridGroup.children.add(line)
-        }
+//        // Линии по оси X (вдоль X, на уровне Y=0, Z=0)
+//        for (x in -range..range step coordStep) {
+//            val line = Box(1.0, range.toDouble() * 2, 1.0)
+//            line.material = PhongMaterial(lineColor)
+//            line.translateX = x.toDouble()
+//            line.translateY = 0.0//range / 2.0
+//            line.translateZ = 0.0
+//            gridGroup.children.add(line)
+//        }
+//
+//        // Линии по оси Y (вдоль Y, на уровне Y=0, Z=0)
+//        for (y in -range..range step coordStep) {
+//            val line = Box(1.0, 1.0, range.toDouble() * 2)
+//            line.material = PhongMaterial(lineColor)
+//            line.translateX = 0.0
+//            line.translateY = y.toDouble()
+//            line.translateZ = 0.0//-range / 2.0
+//            gridGroup.children.add(line)
+//        }
+//
+//        // Линии по оси Z
+//        for (z in -range..range step coordStep) {
+//            val line = Box(range.toDouble() * 2, 1.0, 1.0)
+//            line.material = PhongMaterial(lineColor)
+//            line.translateX = 0.0//range / 2.0
+//            line.translateY = 0.0
+//            line.translateZ = z.toDouble()
+//            gridGroup.children.add(line)
+//        }
 
         // Оси с толстыми линиями и стрелками (упрощённо)
         val axisX = Box(range.toDouble() * 2, 4.0, 4.0)
@@ -258,6 +276,42 @@ class MainApp : Application() {
             zoom = max(-5000.0, min(-200.0, zoom))
             camera.translateZ = zoom
         }
+
+        subScene.setOnMouseMoved { event ->
+            val pickResult = event.pickResult
+            val intersectedNode = pickResult?.intersectedNode
+
+            // Проверяем, является ли выбранный узел сферой
+            if (intersectedNode is Sphere) {
+                // Здесь у вас есть сфера, на которую наведена мышь.
+                // Теперь нужно найти связанные с ней данные (Bin).
+                val sphereData = spheresWithData.find { it.sphere === intersectedNode }
+                sphereData?.let {
+                    showTooltip(event, it.bin)
+                }
+            } else {
+                hideTooltip()
+            }
+        }
+    }
+
+    private fun showTooltip(event: MouseEvent, bin: Bin<*>) {
+        val info = buildString {
+            appendLine("x: [${bin.xBorder.from.value()} , ${bin.xBorder.to.value()}]")
+            bin.yBorder?.let { appendLine("y: [${it.from.value()} , ${it.to.value()}]") }
+            bin.zBorder?.let { appendLine("z: [${it.from.value()} , ${it.to.value()}]") }
+            appendLine("frameSum: ${bin.draftFrameSum}")
+            appendLine("weight: " + String.format("%.4f", bin.weight))
+        }
+        infoLabel.text = info
+        infoLabel.isVisible = true
+        // Позиционируем тултип относительно мыши
+        infoLabel.layoutX = event.screenX - primaryStage.x - infoLabel.width / 2
+        infoLabel.layoutY = event.screenY - primaryStage.y - 30
+    }
+
+    private fun hideTooltip() {
+        infoLabel.isVisible = false
     }
 
     private fun updateCameraRotation() {
@@ -285,11 +339,12 @@ class MainApp : Application() {
         // находим максимальный вес для масштабирования радиусов
         val maxWeight = validBins.maxOf { it.weight }
         // базовый радиус (минимальный) и множитель
-        val minRadius = 5.0
-        val maxRadius = 25.0
+        val minRadius = 15.0
+        val maxRadius = 75.0
 
         // удаляем старые шары
         rootGroup.children.clear()
+        spheresWithData.clear()
 
         validBins.forEach { bin ->
             // вычисляем центр по каждому измерению
@@ -307,6 +362,7 @@ class MainApp : Application() {
             sphere.translateY = cy
             sphere.translateZ = cz
 
+            spheresWithData.add(SphereWithData(sphere, bin))
             rootGroup.children.add(sphere)
         }
     }
@@ -334,12 +390,12 @@ suspend fun main(args: Array<String>) {
 fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     val histogramBuilder = Int3DHistogramBuilder()
     val chunks = TreeSet<Chunk<Int>>()
-    val from = -1200
-    val step = 100
-    val binsCount = 24
+    val from = -1000
+    val step = 200
+    val binsCount = 10
     var border: Border<Int> =
         Border(IntFrame(from), IntFrame(from + step - 1))
-    (0..15).forEach { histogramNum ->
+    (0..9).forEach { histogramNum ->
         val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
         chunks.add(chunk)
         border = Border(
@@ -349,9 +405,9 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
-    val expectedMessageCnt = 1000
+    val expectedMessageCnt = 10000
     val sourceFlowGenerator =
-        Int3DFlowGenerator(-1200..<1200, expectedMessageCnt, true)
+        Int3DFlowGenerator(-1000..<1000, expectedMessageCnt, true)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,
@@ -376,12 +432,10 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     this.launch {
         val globalBorder: Border<Int> =
             Border(
-                IntFrame(
-                    from
-                ),
+                IntFrame(from),
                 IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
             )
-        val histogram = histogramBuilder.initHistogram(globalBorder, 10)
+        val histogram = histogramBuilder.initHistogram(globalBorder, 8)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,
             chunkQueue = chunkQueue,

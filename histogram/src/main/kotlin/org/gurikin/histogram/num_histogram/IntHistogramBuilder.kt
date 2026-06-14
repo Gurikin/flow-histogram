@@ -20,10 +20,12 @@ import org.gurikin.histogram.internal.calcBinsCount
 class IntHistogramBuilder : HistogramBuilder<Int> {
 
     override fun initHistogram(
-        border: Border<Int>,
-        binsCount: Int
+        xBorder: Border<Int>,
+        binsCount: Int,
+        yBorder: Border<Int>?,
+        zBorder: Border<Int>?,
     ): Histogram<Int> {
-        return createHistogram(border, binsCount)
+        return createHistogram(xBorder, binsCount)
     }
 
     private fun createHistogram(

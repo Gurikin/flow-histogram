@@ -18,6 +18,7 @@ dependencies {
     api(projects.histogram)
     implementation("org.openjfx:javafx-controls:17")
     implementation("org.openjfx:javafx-fxml:17")
+    implementation("org.apache.commons:commons-math3:3.6.1")
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)

@@ -15,65 +15,44 @@ import kotlin.math.abs
 class Int3DHistogramBuilder : HistogramBuilder<Int> {
 
     override fun initHistogram(
-        border: Border<Int>,
-        binsCount: Int
+        xBorder: Border<Int>,
+        binsCount: Int,
+        yBorder: Border<Int>?,
+        zBorder: Border<Int>?,
     ): Histogram<Int> {
-        return createHistogram(border, binsCount)
+        return createHistogram(xBorder, binsCount, yBorder, zBorder)
     }
 
     private fun createHistogram(
-        border: Border<Int>,
-        binsCount: Int
+        xBorder: Border<Int>,
+        binsCount: Int,
+        yBorder: Border<Int>?,
+        zBorder: Border<Int>?,
     ): Histogram<Int> {
-        val remOfDiv = reminderOfDivision(border, binsCount)
-        var xRemOfDiv = remOfDiv
-        var yRemOfDiv = remOfDiv
-        var zRemOfDiv = remOfDiv
-        val interval = abs(border.to.value() - remOfDiv - border.from.value() + 1)
-        val step = interval / binsCount
-        val bins: MutableList<Bin<Int>> = mutableListOf()
-        var currBin = Bin(
-            Border(border.from, border.from + step - 1),
-            Border(border.from, border.from + step - 1),
-            Border(border.from, border.from + step - 1)
-        )
-        for (x in (0..<binsCount)) {
-            val xBinFrom = currBin.xBorder.from
-            val xCorrectionToBin = xRemOfDiv.addCorrectionToBin()
-            val xBinTo = currBin.xBorder.to + xCorrectionToBin
-            xRemOfDiv -= xCorrectionToBin
-            val xBorder = Border(xBinFrom, xBinTo)
-            for (y in (0..<binsCount)) {
-                val yBinFrom = currBin.yBorder!!.from
-                val yCorrectionToBin = yRemOfDiv.addCorrectionToBin()
-                val yBinTo = currBin.yBorder.to + yCorrectionToBin
-                yRemOfDiv -= yCorrectionToBin
-                val yBorder = Border(yBinFrom, yBinTo)
-                for (z in (0..<binsCount)) {
-                    val zBinFrom = currBin.zBorder!!.from
-                    val zCorrectionToBin = zRemOfDiv.addCorrectionToBin()
-                    val zBinTo = currBin.zBorder.to + yCorrectionToBin
-                    zRemOfDiv -= zCorrectionToBin
-                    val zBorder = Border(zBinFrom, zBinTo)
-                    val bin = Bin(xBorder, yBorder, zBorder)
-                    bins.add(bin)
-                    currBin = Bin(
-                        Border(bin.xBorder.to + 1, bin.xBorder.to + step),
-                        Border(bin.yBorder!!.to + 1, bin.yBorder.to + step),
-                        Border(bin.zBorder!!.to + 1, bin.zBorder.to + step)
-                    )
+        val bins = mutableListOf<Bin<Int>>()
+        // Вычисляем шаг внутри гистограммы (размер одного бина)
+        val xSize = (xBorder.to.value() - xBorder.from.value() + 1) / binsCount
+        val ySize = (yBorder!!.to.value() - yBorder.from.value() + 1) / binsCount
+        val zSize = (zBorder!!.to.value() - zBorder.from.value() + 1) / binsCount
+
+        for (xi in 0 until binsCount) {
+            val xFrom = xBorder.from.value() + xi * xSize
+            val xTo = if (xi == binsCount - 1) xBorder.to.value() else xFrom + xSize - 1
+            val xBinBorder = Border(IntFrame(xFrom), IntFrame(xTo))
+
+            for (yi in 0 until binsCount) {
+                val yFrom = yBorder.from.value() + yi * ySize
+                val yTo = if (yi == binsCount - 1) yBorder.to.value() else yFrom + ySize - 1
+                val yBinBorder = Border(IntFrame(yFrom), IntFrame(yTo))
+
+                for (zi in 0 until binsCount) {
+                    val zFrom = zBorder.from.value() + zi * zSize
+                    val zTo = if (zi == binsCount - 1) zBorder.to.value() else zFrom + zSize - 1
+                    val zBinBorder = Border(IntFrame(zFrom), IntFrame(zTo))
+
+                    bins.add(Bin(xBinBorder, yBinBorder, zBinBorder))
                 }
-                currBin = Bin(
-                    currBin.xBorder,
-                    currBin.yBorder,
-                    Border(border.from, border.from + step - 1)
-                )
             }
-            currBin = Bin(
-                currBin.xBorder,
-                Border(border.from, border.from + step - 1),
-                currBin.zBorder
-            )
         }
         return Histogram(bins = bins, totalFrameSum = 0)
     }
@@ -86,6 +65,6 @@ class Int3DHistogramBuilder : HistogramBuilder<Int> {
     override fun initHistogram(histogramConfiguration: HistogramConfiguration<Int>): Histogram<Int> {
         val border = histogramConfiguration.histogramBorder!!
         val binsCount = histogramConfiguration.calcBinsCount()
-        return createHistogram(border, binsCount)
+        return createHistogram(border, binsCount, null, null)
     }
 }

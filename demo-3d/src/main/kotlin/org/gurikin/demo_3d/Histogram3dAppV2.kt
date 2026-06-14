@@ -2,6 +2,8 @@ package org.gurikin.demo_3d
 
 import javafx.application.Application
 import javafx.application.Platform
+import javafx.geometry.Point3D
+import javafx.geometry.Pos
 import javafx.scene.AmbientLight
 import javafx.scene.Group
 import javafx.scene.PerspectiveCamera
@@ -13,11 +15,13 @@ import javafx.scene.control.Label
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.StackPane
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
 import javafx.scene.shape.Sphere
 import javafx.scene.transform.Rotate
+import javafx.scene.transform.Scale
 import javafx.scene.transform.Transform
 import javafx.scene.transform.Translate
 import javafx.stage.Stage
@@ -32,12 +36,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
+import org.apache.commons.math3.linear.EigenDecomposition
+import org.apache.commons.math3.util.FastMath.sqrt
 import org.gurikin.demo_3d.utils.watchDir
 import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
+import org.gurikin.histogram.internal.CovarianceMatrix3D
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
@@ -76,6 +83,8 @@ class MainApp : Application() {
     private val spheresWithData = mutableListOf<SphereWithData>()
     private lateinit var primaryStage: Stage
 
+    private lateinit var statsLabel: Label
+
     private data class SphereWithData(
         val sphere: Sphere,
         val bin: Bin<*>
@@ -84,20 +93,32 @@ class MainApp : Application() {
     override fun start(primaryStage: Stage) {
         this.primaryStage = primaryStage
         primaryStage.title = "3D Histogram Viewer"
+        val root = StackPane()
+
+        statsLabel = Label().apply {
+            style = "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5;"
+            isWrapText = true
+            isVisible = true
+        }
+        val statsBox = VBox(statsLabel).apply {
+            alignment = Pos.TOP_RIGHT
+            translateX = 0.1
+            translateY = 0.1
+        }
+        // Добавляем поверх subScene
+        root.children.add(statsBox)
 
         // корневой элемент
-//        val root = BorderPane()
-//        rootGroup = Group()
         val subScene = createSubScene()
-//        root.center = subScene
-        val root = StackPane()
         root.children.add(subScene)
+
         infoLabel = Label().apply {
             style =
                 "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 5; -fx-background-radius: 5;"
             isVisible = false
         }
         root.children.add(infoLabel) // будет поверх сцены
+
 
         // настройки сцены
         primaryStage.scene = Scene(root, 1024.0, 768.0, true)
@@ -193,6 +214,41 @@ class MainApp : Application() {
             val dir = File(filePath).toPath().parent
             watchDir(dir) { Platform.runLater { updateSpheres(filePath) } }
         }
+        scope.launch {
+            while (this.isActive) {
+                val filePath = getFilePathFromUser()
+                val file = File(filePath)
+                val content = file.readText()
+                val histogram = json.decodeFromString<Histogram<Int>>(content)
+                updateStatistics(histogram)
+                delay(1000.milliseconds)
+            }
+        }
+    }
+
+    private fun updateStatistics(histogram: Histogram<Int>) {
+        val cov = histogram.covariance
+        val varX = cov.varX
+        val varY = cov.varY
+        val varZ = cov.varZ
+        val covXY = cov.covXY
+        val covXZ = cov.covXZ
+        val covYZ = cov.covYZ
+
+        val corrXY = if (varX > 0 && varY > 0) covXY / sqrt(varX * varY) else 0.0
+        val corrXZ = if (varX > 0 && varZ > 0) covXZ / sqrt(varX * varZ) else 0.0
+        val corrYZ = if (varY > 0 && varZ > 0) covYZ / sqrt(varY * varZ) else 0.0
+
+        val info = """
+        Covariance Matrix:
+        varX = ${"%.2f".format(varX)}
+        varY = ${"%.2f".format(varY)}
+        varZ = ${"%.2f".format(varZ)}
+        covXY = ${"%.2f".format(covXY)}  |  corrXY = ${"%.3f".format(corrXY)}
+        covXZ = ${"%.2f".format(covXZ)}  |  corrXZ = ${"%.3f".format(corrXZ)}
+        covYZ = ${"%.2f".format(covYZ)}  |  corrYZ = ${"%.3f".format(corrYZ)}
+    """.trimIndent()
+        Platform.runLater { statsLabel.text = info }
     }
 
     private fun getFilePathFromUser(): String {
@@ -339,8 +395,8 @@ class MainApp : Application() {
         // находим максимальный вес для масштабирования радиусов
         val maxWeight = validBins.maxOf { it.weight }
         // базовый радиус (минимальный) и множитель
-        val minRadius = 15.0
-        val maxRadius = 75.0
+        val minRadius = 1.0
+        val maxRadius = 100.0
 
         // удаляем старые шары
         rootGroup.children.clear()
@@ -387,21 +443,50 @@ suspend fun main(args: Array<String>) {
     }
 }
 
+fun splitIntoParts(from: Int, to: Int, parts: Int): List<Pair<Int, Int>> {
+    val total = to - from + 1
+    val partSize = total / parts
+    val remainder = total % parts
+    val result = mutableListOf<Pair<Int, Int>>()
+    var current = from
+    for (i in 0 until parts) {
+        val extra = if (i < remainder) 1 else 0
+        val end = current + partSize - 1 + extra
+        result.add(current to end)
+        current = end + 1
+    }
+    return result
+}
+
 fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     val histogramBuilder = Int3DHistogramBuilder()
-    val chunks = TreeSet<Chunk<Int>>()
     val from = -1000
-    val step = 200
-    val binsCount = 10
-    var border: Border<Int> =
-        Border(IntFrame(from), IntFrame(from + step - 1))
-    (0..9).forEach { histogramNum ->
-        val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
-        chunks.add(chunk)
-        border = Border(
-            IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
-            IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
-        )
+    val to = 999
+    val chunksPerAxis = 5               // можно изменить: 2, 4, 5 ...
+    val binsPerChunk = 10               // количество бинов внутри каждого чанка
+
+    val xIntervals = splitIntoParts(from, to, chunksPerAxis)
+    val yIntervals = splitIntoParts(from, to, chunksPerAxis)
+    val zIntervals = splitIntoParts(from, to, chunksPerAxis)
+
+    val chunks = TreeSet<Chunk<Int>>()
+
+    for (xRange in xIntervals) {
+        val xBorder = Border(IntFrame(xRange.first), IntFrame(xRange.second))
+        for (yRange in yIntervals) {
+            val yBorder = Border(IntFrame(yRange.first), IntFrame(yRange.second))
+            for (zRange in zIntervals) {
+                val zBorder = Border(IntFrame(zRange.first), IntFrame(zRange.second))
+                val histogram = histogramBuilder.initHistogram(xBorder, binsPerChunk, yBorder, zBorder)
+                val chunk = Chunk(histogram, ChunkId())
+                chunks.add(chunk)
+            }
+        }
+    }
+    chunks.forEachIndexed { index, chunk ->
+        val l = chunk.histogram.bins.first()
+        val r = chunk.histogram.bins.last()
+        println("Chunk: [$index]\tFrom: [${l.xBorder.from},${l.yBorder?.from},${l.zBorder?.from}].\tTo [${r.xBorder.to},${r.yBorder?.to},${r.zBorder?.to}]")
     }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
@@ -435,7 +520,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
                 IntFrame(from),
                 IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
             )
-        val histogram = histogramBuilder.initHistogram(globalBorder, 8)
+        val histogram = histogramBuilder.initHistogram(globalBorder, 8, globalBorder, globalBorder)
         val histogrammator = DefaultHistogrammator(
             histogram = histogram,
             chunkQueue = chunkQueue,

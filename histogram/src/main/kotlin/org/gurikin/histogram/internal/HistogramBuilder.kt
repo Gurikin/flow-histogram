@@ -25,11 +25,11 @@ interface HistogramBuilder<S : Comparable<S>> {
     /**
      * Init a histogram with manually defined binsCount
      *
-     * @param border [Border] histogram borders (from and to)
+     * @param xBorder [Border] histogram borders (from and to)
      * @param binsCount histogram bins count
      * @return
      */
-    fun initHistogram(border: Border<S>, binsCount: Int): Histogram<S>
+    fun initHistogram(xBorder: Border<S>, binsCount: Int, yBorder: Border<S>? = null, zBorder: Border<S>? = null): Histogram<S>
 
     /**
      * Init a histogram with define binsCount by Sturges formula

@@ -24,6 +24,7 @@ import javafx.scene.transform.Rotate
 import javafx.scene.transform.Scale
 import javafx.scene.transform.Transform
 import javafx.scene.transform.Translate
+import javafx.stage.Screen
 import javafx.stage.Stage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +74,7 @@ class MainApp : Application() {
     private var rotateY = 0.0
     private var translateX = 0.0
     private var translateY = 0.0
-    private var zoom = -1000.0
+    private var zoom = -2000.0
 
     val scope = mainScope
 
@@ -95,19 +96,6 @@ class MainApp : Application() {
         primaryStage.title = "3D Histogram Viewer"
         val root = StackPane()
 
-        statsLabel = Label().apply {
-            style = "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5;"
-            isWrapText = true
-            isVisible = true
-        }
-        val statsBox = VBox(statsLabel).apply {
-            alignment = Pos.TOP_LEFT
-            translateX = 1.0
-            translateY = 1.0
-        }
-        // Добавляем поверх subScene
-        root.children.add(statsBox)
-
         // корневой элемент
         val subScene = createSubScene()
         root.children.add(subScene)
@@ -119,9 +107,25 @@ class MainApp : Application() {
         }
         root.children.add(infoLabel) // будет поверх сцены
 
+        statsLabel = Label().apply {
+            style = "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5;"
+            isWrapText = true
+            isVisible = true
+            text = "Stats calculating..."
+        }
+        val statsBox = VBox(statsLabel).apply {
+            alignment = Pos.TOP_LEFT
+            translateX = 1.0
+            translateY = 1.0
+            isMouseTransparent = true
+        }
+        // Добавляем поверх subScene
+        root.children.add(statsBox)
+
 
         // настройки сцены
-        primaryStage.scene = Scene(root, 1024.0, 768.0, true)
+        val screen = Screen.getPrimary().visualBounds
+        primaryStage.scene = Scene(root, screen.width, screen.height, true)
         primaryStage.show()
 
         // запуск мониторинга файла
@@ -296,7 +300,8 @@ class MainApp : Application() {
         rootGroup = Group()
         world.children.add(rootGroup)
 
-        val subScene = SubScene(world, 1024.0, 768.0, true, SceneAntialiasing.BALANCED)
+        val screen = Screen.getPrimary().visualBounds
+        val subScene = SubScene(world, screen.width, screen.height, true, SceneAntialiasing.BALANCED)
         subScene.fill = Color.WHITE
         subScene.camera = camera
 
@@ -333,7 +338,7 @@ class MainApp : Application() {
 
         subScene.setOnScroll { event ->
             val delta = event.deltaY
-            zoom += delta * 2  // коэффициент чувствительности
+            zoom += delta * 4  // коэффициент чувствительности
             zoom = max(-5000.0, min(-200.0, zoom))
             camera.translateZ = zoom
         }
@@ -495,7 +500,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     val chunkQueue = DefaultChunkQueue(this)
     val expectedMessageCnt = 1000
     val sourceFlowGenerator =
-        Int3DFlowGenerator(-5000..<-2000, expectedMessageCnt, true)
+        Int3DFlowGenerator(from..<to, expectedMessageCnt, true)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,

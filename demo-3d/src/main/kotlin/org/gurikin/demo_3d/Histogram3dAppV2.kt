@@ -34,6 +34,7 @@ import org.gurikin.demo_3d.utils.watchDir
 import org.gurikin.histogram.DefaultHistogrammator
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
+import org.gurikin.histogram.internal.ChunkId
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
@@ -63,7 +64,9 @@ class MainApp : Application() {
     private var mouseOldY = 0.0
     private var rotateX = 0.0
     private var rotateY = 0.0
-    private var zoom = -2000.0
+    private var translateX = 0.0
+    private var translateY = 0.0
+    private var zoom = -1000.0
 
     val scope = mainScope
 
@@ -99,57 +102,68 @@ class MainApp : Application() {
 
         // Размер сетки (диапазон координат)
         val range = 1200  // подберите под свои данные
-        val coordStep = 100
+        val coordStep = 50
 
         // Линии по оси X (вдоль X, на уровне Y=0, Z=0)
         for (x in -range..range step coordStep) {
-            val line = Box(1.0, 0.5, 0.5)
+            val line = Box(1.0, range.toDouble() * 2, 1.0)
             line.material = PhongMaterial(lineColor)
             line.translateX = x.toDouble()
-            line.translateY = 0.0
+            line.translateY = 0.0//range / 2.0
             line.translateZ = 0.0
             gridGroup.children.add(line)
         }
-        // Линии по оси Z
-        for (z in -range..range step coordStep) {
-            val line = Box(0.5, 0.5, 1.0)
+
+        // Линии по оси Y (вдоль Y, на уровне Y=0, Z=0)
+        for (y in -range..range step coordStep) {
+            val line = Box(1.0, 1.0, range.toDouble() * 2)
             line.material = PhongMaterial(lineColor)
             line.translateX = 0.0
+            line.translateY = y.toDouble()
+            line.translateZ = 0.0//-range / 2.0
+            gridGroup.children.add(line)
+        }
+
+        // Линии по оси Z
+        for (z in -range..range step coordStep) {
+            val line = Box(range.toDouble() * 2, 1.0, 1.0)
+            line.material = PhongMaterial(lineColor)
+            line.translateX = 0.0//range / 2.0
             line.translateY = 0.0
             line.translateZ = z.toDouble()
             gridGroup.children.add(line)
         }
 
         // Оси с толстыми линиями и стрелками (упрощённо)
-        val axisX = Box(1000.0, 2.0, 2.0)
+        val axisX = Box(range.toDouble() * 2, 4.0, 4.0)
         axisX.material = PhongMaterial(Color.RED)
-        val axisY = Box(2.0, 1000.0, 2.0)
+        val axisY = Box(4.0, range.toDouble() * 2, 4.0)
         axisY.material = PhongMaterial(Color.GREEN)
-        val axisZ = Box(2.0, 2.0, 1000.0)
+        val axisZ = Box(4.0, 4.0, range.toDouble() * 2)
         axisZ.material = PhongMaterial(Color.BLUE)
 
         gridGroup.children.addAll(axisX, axisY, axisZ)
 
         // Подписи осей (простые текстовые метки)
-        val font = javafx.scene.text.Font.font("Arial", 20.0)
+        val font = javafx.scene.text.Font.font("Arial", 30.0)
         val textX = javafx.scene.text.Text("X")
         textX.font = font
         textX.fill = Color.RED
-        textX.translateX = range + 50.0
+        textX.translateX = range / 8.0
         textX.translateY = -20.0
         textX.translateZ = 0.0
         val textY = javafx.scene.text.Text("Y")
         textY.font = font
         textY.fill = Color.GREEN
         textY.translateX = -30.0
-        textY.translateY = range + 50.0
+        textY.translateY = range / 8.0
         textY.translateZ = 0.0
         val textZ = javafx.scene.text.Text("Z")
         textZ.font = font
         textZ.fill = Color.BLUE
         textZ.translateX = 0.0
         textZ.translateY = -30.0
-        textZ.translateZ = range + 50.0
+        textZ.translateZ = range / 8.0
 
         gridGroup.children.addAll(textX, textY, textZ)
         return gridGroup
@@ -229,12 +243,20 @@ class MainApp : Application() {
                 rotateY += dx * 0.5
                 updateCameraRotation()
             } else if (event.button == MouseButton.SECONDARY) {
-                zoom += dy * 5
-                zoom = max(-5000.0, min(-200.0, zoom))
-                camera.translateZ = zoom
+                translateX -= dx * 5
+                translateY -= dy * 5
+                camera.translateX = max(-2000.0, translateX)
+                camera.translateY = max(-2000.0, translateY)
             }
             mouseOldX = event.sceneX
             mouseOldY = event.sceneY
+        }
+
+        subScene.setOnScroll { event ->
+            val delta = event.deltaY
+            zoom += delta * 2  // коэффициент чувствительности
+            zoom = max(-5000.0, min(-200.0, zoom))
+            camera.translateZ = zoom
         }
     }
 
@@ -263,8 +285,8 @@ class MainApp : Application() {
         // находим максимальный вес для масштабирования радиусов
         val maxWeight = validBins.maxOf { it.weight }
         // базовый радиус (минимальный) и множитель
-        val minRadius = 3.0
-        val maxRadius = 15.0
+        val minRadius = 5.0
+        val maxRadius = 25.0
 
         // удаляем старые шары
         rootGroup.children.clear()
@@ -311,23 +333,25 @@ suspend fun main(args: Array<String>) {
 
 fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     val histogramBuilder = Int3DHistogramBuilder()
-    val configuration = HistogramConfiguration(
-        sourceType = HistogramSourceTypesEnum.INT,
-        histogramBorder = Border(
-            IntFrame(
-                0
-            ), IntFrame(999)
-        ),
-        minStep = 1,
-        valueList = null
-    )
     val chunks = TreeSet<Chunk<Int>>()
-    chunks.addAll(configuration.generateChunks(histogramBuilder))
+    val from = -1200
+    val step = 100
+    val binsCount = 24
+    var border: Border<Int> =
+        Border(IntFrame(from), IntFrame(from + step - 1))
+    (0..15).forEach { histogramNum ->
+        val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
+        chunks.add(chunk)
+        border = Border(
+            IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
+            IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
+        )
+    }
     val chunkStorage = DefaultChunkStorage<Int>(this)
     val chunkQueue = DefaultChunkQueue(this)
     val expectedMessageCnt = 1000
     val sourceFlowGenerator =
-        Int3DFlowGenerator(0..<999, expectedMessageCnt)
+        Int3DFlowGenerator(-1200..<1200, expectedMessageCnt, true)
     val sourceFlow = sourceFlowGenerator.flowData()
     val chunkAggregator = DefaultChunkAggregator(
         framesFlow = sourceFlow,
@@ -341,7 +365,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     this.launch { chunkAggregator.collectData() }
 
     this.launch {
-        while(mainAppScope.isActive) {
+        while (mainAppScope.isActive) {
             println("Main app alive...")
             delay(2000.milliseconds)
         }
@@ -353,7 +377,7 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
         val globalBorder: Border<Int> =
             Border(
                 IntFrame(
-                    0
+                    from
                 ),
                 IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
             )

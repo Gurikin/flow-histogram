@@ -262,10 +262,11 @@ class ApplicationTest {
         runBlocking {
             val histogramBuilder = Int3DHistogramBuilder()
             val chunks = TreeSet<Chunk<Int>>()
-            val step = 100
+            val from = -1000
+            val step = 200
             val binsCount = 10
             var border: Border<Int> =
-                Border(IntFrame(0), IntFrame(step - 1))
+                Border(IntFrame(from), IntFrame(from + step - 1))
             (0..9).forEach { histogramNum ->
                 val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
                 chunks.add(chunk)
@@ -276,8 +277,8 @@ class ApplicationTest {
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
-            val expectedMessageCnt = 100
-            val sourceFlowGenerator = Int3DFlowGenerator(0..<expectedMessageCnt, expectedMessageCnt)
+            val expectedMessageCnt = 10000
+            val sourceFlowGenerator = Int3DFlowGenerator(-1000..<999, expectedMessageCnt)
             val sourceFlow = sourceFlowGenerator.flowData()
             val chunkAggregator = DefaultChunkAggregator(
                 framesFlow = sourceFlow,

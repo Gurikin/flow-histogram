@@ -7,12 +7,7 @@ import kotlinx.coroutines.isActive
 import org.gurikin.histogram.SourceFlowGenerator
 import org.gurikin.histogram.internal.Point
 import org.gurikin.histogram.internal.PointFrame
-import kotlin.math.E
-import kotlin.math.PI
-import kotlin.math.pow
-import kotlin.math.sqrt
-import kotlin.random.Random
-import kotlin.random.nextInt
+import java.util.*
 
 class Int3DFlowGenerator(
     private val range: IntRange,
@@ -22,27 +17,27 @@ class Int3DFlowGenerator(
 
     override fun flowData() = flow {
         while (currentCoroutineContext().isActive) {
+            val r = Random()
             repeat(messagesCount) {
                 if (isGaussian) {
-                    val x = Random.nextInt(range)
-                    val y = Random.nextInt(range)
-                    val z = Random.nextInt(range)
-                    val gausX: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((x.toDouble() / messagesCount).pow(2))
-                    val gausY: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((y.toDouble() / messagesCount).pow(2))
-                    val gausZ: Double = (1 / (1 * (sqrt(2 * PI)))) * E.pow((z.toDouble() / messagesCount).pow(2))
+                    val x = r.nextGaussian() * r.nextInt(range.first, range.last)
+                    val y = r.nextGaussian() * r.nextInt(range.first, range.last)
+                    val z = r.nextGaussian() * r.nextInt(range.first, range.last)
                     val frame = PointFrame(
                         Point(
-                            x = (gausX * messagesCount).toInt(),
-                            y = (gausY * messagesCount).toInt(),
-                            z = (gausZ * messagesCount).toInt()
+                            x = x.toInt(),
+                            y = y.toInt(),
+                            z = z.toInt()
                         )
                     )
-                    println("[FlowGenerator] Frame = $frame")
+                    println("[FlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
                     emit(frame)
                 } else {
-                    val cord = Random.nextInt(range)
-                    val frame = PointFrame(Point(x = cord, y = cord, z = cord))
-                    println("[FlowGenerator] Frame = $frame")
+                    val x = r.nextInt(range.first, range.last)
+                    val y = r.nextInt(range.first, range.last)
+                    val z = r.nextInt(range.first, range.last)
+                    val frame = PointFrame(Point(x = x, y = y, z = z))
+                    println("[FlowGenerator] Frame = [${frame.value.x},${frame.value.y},${frame.value.z}]")
                     emit(frame)
                 }
 

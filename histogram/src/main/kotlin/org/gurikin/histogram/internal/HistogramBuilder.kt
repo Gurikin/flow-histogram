@@ -89,7 +89,7 @@ class Histogram<S : Comparable<S>> (
 
     @Suppress("UNCHECKED_CAST")
     fun refreshAvg() {
-        this.bins.forEach { bin ->
+        this.bins.filter { it.getFrameSum() != 0 }.forEach { bin ->
             val binAvg = when (bin.xBorder.type) {
                 HistogramSourceTypesEnum.INT -> avg(
                     (bin.xBorder as Border<Int>).from,
@@ -229,7 +229,7 @@ fun <S : Comparable<S>> Bin<S>.addFrame() {
 }
 
 fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
-    this.weight = BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
+    this.weight = weight //BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =

@@ -1,8 +1,9 @@
 package org.gurikin.demo_3d
 
+import java.io.File
+import java.util.*
 import javafx.application.Application
 import javafx.application.Platform
-import javafx.geometry.Point3D
 import javafx.geometry.Pos
 import javafx.scene.AmbientLight
 import javafx.scene.Group
@@ -21,11 +22,13 @@ import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
 import javafx.scene.shape.Sphere
 import javafx.scene.transform.Rotate
-import javafx.scene.transform.Scale
 import javafx.scene.transform.Transform
 import javafx.scene.transform.Translate
 import javafx.stage.Screen
 import javafx.stage.Stage
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,7 +40,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
-import org.apache.commons.math3.linear.EigenDecomposition
 import org.apache.commons.math3.util.FastMath.sqrt
 import org.gurikin.demo_3d.utils.watchDir
 import org.gurikin.histogram.DefaultHistogrammator
@@ -45,20 +47,14 @@ import org.gurikin.histogram.internal.Bin
 import org.gurikin.histogram.internal.Border
 import org.gurikin.histogram.internal.Chunk
 import org.gurikin.histogram.internal.ChunkId
-import org.gurikin.histogram.internal.CovarianceMatrix3D
 import org.gurikin.histogram.internal.DefaultChunkAggregator
 import org.gurikin.histogram.internal.DefaultChunkQueue
 import org.gurikin.histogram.internal.DefaultChunkStorage
 import org.gurikin.histogram.internal.Histogram
 import org.gurikin.histogram.internal.IntFrame
+import org.gurikin.histogram.internal.splitIntoParts
 import org.gurikin.histogram.num_histogram.Int3DFlowGenerator
 import org.gurikin.histogram.num_histogram.Int3DHistogramBuilder
-import java.io.File
-import java.util.*
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.time.Duration.Companion.milliseconds
-import org.gurikin.histogram.internal.splitIntoParts
 
 val mainScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -109,7 +105,8 @@ class MainApp : Application() {
         root.children.add(infoLabel) // будет поверх сцены
 
         statsLabel = Label().apply {
-            style = "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5;"
+            style =
+                "-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5;"
             isWrapText = true
             isVisible = true
             text = "Stats calculating..."
@@ -224,15 +221,15 @@ class MainApp : Application() {
                 val filePath = getFilePathFromUser()
                 val file = File(filePath)
                 val content = file.readText()
-                val histogram = json.decodeFromString<Histogram<Int>>(content)
+                val histogram = decodeHistogram(content)
                 updateStatistics(histogram)
                 delay(1000.milliseconds)
             }
         }
     }
 
-    private fun updateStatistics(histogram: Histogram<Int>) {
-        val cov = histogram.covariance
+    private fun updateStatistics(histogram: Histogram<Int>?) {
+        val cov = histogram?.covariance ?: return
         val varX = cov.varX
         val varY = cov.varY
         val varZ = cov.varZ
@@ -388,10 +385,18 @@ class MainApp : Application() {
         rotY.angle = rotateY
     }
 
+    private fun decodeHistogram(content: String): Histogram<Int>? =
+        try {
+            json.decodeFromString<Histogram<Int>>(content)
+        } catch (ex: RuntimeException) {
+            null
+        }
+
     private fun updateSpheres(filePath: String) {
         val file = File(filePath)
         val content = file.readText()
-        val histogram = json.decodeFromString<Histogram<Int>>(content)
+        val histogram = decodeHistogram(content) ?: return
+
         val validBins = histogram.bins.filter {
             it.weight > 0.00
         }

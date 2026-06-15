@@ -58,6 +58,7 @@ import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
+import org.gurikin.histogram.internal.splitIntoParts
 
 val mainScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -449,21 +450,6 @@ suspend fun main(args: Array<String>) {
         launch { Application.launch(MainApp::class.java, *args) }
         launch { launch3DHistogrammator(mainScope) }
     }
-}
-
-fun splitIntoParts(from: Int, to: Int, parts: Int): List<Pair<Int, Int>> {
-    val total = to - from + 1
-    val partSize = total / parts
-    val remainder = total % parts
-    val result = mutableListOf<Pair<Int, Int>>()
-    var current = from
-    for (i in 0 until parts) {
-        val extra = if (i < remainder) 1 else 0
-        val end = current + partSize - 1 + extra
-        result.add(current to end)
-        current = end + 1
-    }
-    return result
 }
 
 fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {

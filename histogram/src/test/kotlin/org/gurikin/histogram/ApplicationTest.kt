@@ -28,6 +28,7 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import org.gurikin.histogram.internal.splitIntoParts
 
 class ApplicationTest {
     @Test
@@ -261,19 +262,28 @@ class ApplicationTest {
     fun `test 3d histogrammator accumulate 500 messages`() {
         runBlocking {
             val histogramBuilder = Int3DHistogramBuilder()
-            val chunks = TreeSet<Chunk<Int>>()
             val from = -1000
-            val step = 200
-            val binsCount = 10
-            var border: Border<Int> =
-                Border(IntFrame(from), IntFrame(from + step - 1))
-            (0..9).forEach { histogramNum ->
-                val chunk = Chunk(histogramBuilder.initHistogram(border, binsCount), ChunkId())
-                chunks.add(chunk)
-                border = Border(
-                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + 1),
-                    IntFrame(chunk.histogram.bins.last().xBorder.to.value() + step)
-                )
+            val to = 999
+            val chunksPerAxis = 5               // можно изменить: 2, 4, 5 ...
+            val binsPerChunk = 10               // количество бинов внутри каждого чанка
+
+            val xIntervals = splitIntoParts(from, to, chunksPerAxis)
+            val yIntervals = splitIntoParts(from, to, chunksPerAxis)
+            val zIntervals = splitIntoParts(from, to, chunksPerAxis)
+
+            val chunks = TreeSet<Chunk<Int>>()
+
+            for (xRange in xIntervals) {
+                val xBorder = Border(IntFrame(xRange.first), IntFrame(xRange.second))
+                for (yRange in yIntervals) {
+                    val yBorder = Border(IntFrame(yRange.first), IntFrame(yRange.second))
+                    for (zRange in zIntervals) {
+                        val zBorder = Border(IntFrame(zRange.first), IntFrame(zRange.second))
+                        val histogram = histogramBuilder.initHistogram(xBorder, binsPerChunk, yBorder, zBorder)
+                        val chunk = Chunk(histogram, ChunkId())
+                        chunks.add(chunk)
+                    }
+                }
             }
             val chunkStorage = DefaultChunkStorage<Int>(this)
             val chunkQueue = DefaultChunkQueue(this)
@@ -297,7 +307,7 @@ class ApplicationTest {
                     IntFrame(0),
                     IntFrame(chunks.last().histogram.bins.last().xBorder.to.value())
                 )
-                val histogram = histogramBuilder.initHistogram(globalBorder, 10)
+                val histogram = histogramBuilder.initHistogram(globalBorder, 10, globalBorder, globalBorder)
                 val histogrammator = DefaultHistogrammator(
                     histogram = histogram,
                     chunkQueue = chunkQueue,

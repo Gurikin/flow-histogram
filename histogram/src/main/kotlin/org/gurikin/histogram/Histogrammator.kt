@@ -65,6 +65,14 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 delay(accumulateDelay)
             }
         }
+        scope.launch {
+            while (scope.isActive) {
+                for (bin in histogram.bins) {
+                    refreshBin(bin)
+                }
+                delay(refreshBinsDelay)
+            }
+        }
     }
 
     override suspend fun calcAvg() {

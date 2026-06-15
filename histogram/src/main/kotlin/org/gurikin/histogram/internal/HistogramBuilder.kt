@@ -1,5 +1,7 @@
 package org.gurikin.histogram.internal
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -46,6 +48,21 @@ interface HistogramBuilder<S : Comparable<S>> {
     fun initHistogram(histogramConfiguration: HistogramConfiguration<S>): Histogram<S>
 }
 
+fun splitIntoParts(from: Int, to: Int, parts: Int): List<Pair<Int, Int>> {
+    val total = to - from + 1
+    val partSize = total / parts
+    val remainder = total % parts
+    val result = mutableListOf<Pair<Int, Int>>()
+    var current = from
+    for (i in 0 until parts) {
+        val extra = if (i < remainder) 1 else 0
+        val end = current + partSize - 1 + extra
+        result.add(current to end)
+        current = end + 1
+    }
+    return result
+}
+
 /**
  * Алгоритм для одномерной гистограммы:
  *
@@ -60,7 +77,6 @@ interface HistogramBuilder<S : Comparable<S>> {
  */
 @Serializable
 @OptIn(ExperimentalAtomicApi::class)
-
 class Histogram<S : Comparable<S>>(
     val bins: List<Bin<S>>,
     private var totalFrameSum: Int,
@@ -237,7 +253,8 @@ fun <S : Comparable<S>> Bin<S>.addFrame() {
 }
 
 fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
-    this.weight = weight //BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
+    this.weight =
+        BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =

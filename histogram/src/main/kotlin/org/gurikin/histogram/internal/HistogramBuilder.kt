@@ -252,9 +252,9 @@ fun <S : Comparable<S>> Bin<S>.addFrame() {
     this.incrementFrameSum(1)
 }
 
-fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double) {
+fun <S : Comparable<S>> Bin<S>.setWeight(weight: Double?) {
     this.weight =
-        BigDecimal(weight).setScale(4, RoundingMode.HALF_EVEN).toDouble()
+        BigDecimal(weight ?: 0.0).setScale(4, RoundingMode.HALF_EVEN).toDouble()
 }
 
 fun <S : Comparable<S>> Bin<S>.chunkInBorder(chunk: Chunk<S>): Boolean =

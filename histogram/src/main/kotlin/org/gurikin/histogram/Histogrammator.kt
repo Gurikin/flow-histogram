@@ -58,6 +58,9 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         bin.chunkRightSideInBorder(chunk) -> accumulateChunkRightSide(bin, chunk)
                         else -> refreshBin(bin)
                     }
+                    val weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
+                    if (!weight.isInfinite() && !weight.isNaN()) bin.setWeight(weight)
+                    chunk.calcCovariance()
                 }
                 histogram.covariance += chunk.histogram.covariance
                 chunkStorage.remove(chunkId)
@@ -72,6 +75,12 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 }
                 delay(refreshBinsDelay)
             }
+        }
+    }
+
+    private fun refreshWeights() {
+        for (bin in histogram.bins) {
+            refreshBin(bin)
         }
     }
 
@@ -90,8 +99,6 @@ class DefaultHistogrammator<S : Comparable<S>>(
         val chunkFrameSum = chunk.histogram.getFrameSum()
         histogram.incrementFrameSum(chunkFrameSum)
         bin.incrementFrameSum(chunkFrameSum)
-        bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
-        chunk.calcCovariance()
     }
 
     private fun accumulateChunkLeftSide(bin: Bin<S>, chunk: Chunk<S>) {
@@ -100,8 +107,6 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 bin.binInBorder(chunkBin) || bin.binIsCrossingBorder(chunkBin) -> {
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
-                    bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
-                    chunk.calcCovariance()
                 }
 
                 else -> continue
@@ -115,8 +120,6 @@ class DefaultHistogrammator<S : Comparable<S>>(
                 bin.binInBorder(chunkBin) -> {
                     bin.incrementFrameSum(chunkBin.getFrameSum())
                     histogram.incrementFrameSum(chunkBin.getFrameSum())
-                    bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
-                    chunk.calcCovariance()
                 }
 
                 else -> continue

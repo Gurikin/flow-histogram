@@ -44,11 +44,11 @@ class DefaultHistogrammator<S : Comparable<S>>(
 
     override suspend fun accumulate() {
         scope.launch {
-//            var messagesCnt = 0
+            var messagesCnt = 0
             while (true) {
                 val chunkId = chunkQueue.poll()
                 val chunk: Chunk<S> = chunkStorage.getChunk(chunkId)
-//                messagesCnt += chunk.histogram.getFrameSum()
+                messagesCnt += chunk.histogram.getFrameSum()
 //                println("[Histogrammator] messageCnt from Chunks: $messagesCnt")
 
                 for (bin in histogram.bins) {
@@ -56,12 +56,17 @@ class DefaultHistogrammator<S : Comparable<S>>(
                         bin.chunkInBorder(chunk) -> accumulateChunkEntire(bin, chunk)
                         bin.chunkLeftSideInBorder(chunk) -> accumulateChunkLeftSide(bin, chunk)
                         bin.chunkRightSideInBorder(chunk) -> accumulateChunkRightSide(bin, chunk)
-                        else -> refreshBin(bin)
+                        else -> {
+                            refreshBin(bin)
+                        }
                     }
                     val weight = bin.getFrameSum().toDouble() / histogram.getFrameSum()
                     if (!weight.isInfinite() && !weight.isNaN()) bin.setWeight(weight)
                     chunk.calcCovariance()
                 }
+//                if (messagesCnt != histogram.getFrameSum())
+//                    printMissedChunk(histogram, chunk)
+
                 histogram.covariance += chunk.histogram.covariance
                 chunkStorage.remove(chunkId)
 //                println("[Histogrammator] messageCnt from Histogrammator: ${histogram.getFrameSum()}")
@@ -132,5 +137,24 @@ class DefaultHistogrammator<S : Comparable<S>>(
             return
         }
         bin.setWeight(bin.getFrameSum().toDouble() / histogram.getFrameSum())
+    }
+
+    private fun printMissedChunk(histogram: Histogram<S>, chunk: Chunk<S>) {
+        var missedDataStr = """
+            Chunk:
+                X: [${chunk.histogram.bins.first().xBorder.from}, ${chunk.histogram.bins.last().xBorder.to}]
+                Y: [${chunk.histogram.bins.first().yBorder?.from}, ${chunk.histogram.bins.last().yBorder?.to}]
+                Z: [${chunk.histogram.bins.first().zBorder?.from}, ${chunk.histogram.bins.last().zBorder?.to}]
+        """.trimIndent()
+        histogram.bins.forEachIndexed { idx, bin ->
+            if (bin.xBorder.to >= chunk.histogram.bins.last().xBorder.to)
+                missedDataStr += """
+                    Bin[$idx]:
+                        X: [${bin.xBorder.from},  ${bin.xBorder.to}]
+                        Y: [${bin.yBorder?.from}, ${bin.yBorder?.to}]
+                        Z: [${bin.zBorder?.from}, ${bin.zBorder?.to}]
+                """.trimIndent()
+        }
+        println("Miss chunk:\n$missedDataStr")
     }
 }

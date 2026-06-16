@@ -461,8 +461,8 @@ fun launch3DHistogrammator(mainAppScope: CoroutineScope) = runBlocking {
     val histogramBuilder = Int3DHistogramBuilder()
     val from = -1000
     val to = 999
-    val chunksPerAxis = 5               // можно изменить: 2, 4, 5 ...
-    val binsPerChunk = 10               // количество бинов внутри каждого чанка
+    val chunksPerAxis = 12               // можно изменить: 2, 4, 5 ...
+    val binsPerChunk = 5               // количество бинов внутри каждого чанка
 
     val xIntervals = splitIntoParts(from, to, chunksPerAxis)
     val yIntervals = splitIntoParts(from, to, chunksPerAxis)
